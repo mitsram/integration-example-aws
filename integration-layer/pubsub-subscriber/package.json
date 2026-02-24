@@ -1,0 +1,19 @@
+{
+  "name": "pubsub-subscriber",
+  "version": "1.0.0",
+  "description": "Subscribes to Redis Pub/Sub topic and logs events (simulates SNS subscriber)",
+  "main": "dist/app.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "ts-node src/app.ts"
+  },
+  "dependencies": {
+    "ioredis": "^5.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "ts-node": "^10.9.0"
+  }
+}

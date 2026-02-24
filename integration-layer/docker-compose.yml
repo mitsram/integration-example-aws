@@ -1,0 +1,95 @@
+version: "3.8"
+
+services:
+  # ── API Gateway (Nginx reverse proxy) ──────────────────────────
+  api-gateway:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./api-gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      soap-processor:
+        condition: service_healthy
+    networks:
+      - integration-net
+
+  # ── Lambda 1 – SOAP Processor ─────────────────────────────────
+  soap-processor:
+    build: ./lambda-soap-processor
+    environment:
+      SQS_ENDPOINT: http://elasticmq:9324
+      SQS_QUEUE_URL: http://elasticmq:9324/queue/integration-queue
+    depends_on:
+      elasticmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - integration-net
+
+  # ── ElasticMQ (SQS-compatible message queue) ───────────────────
+  elasticmq:
+    image: softwaremill/elasticmq-native:latest
+    ports:
+      - "9324:9324"
+      - "9325:9325"
+    volumes:
+      - ./elasticmq/elasticmq.conf:/opt/elasticmq.conf:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9324"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - integration-net
+
+  # ── Lambda 2 – Event Publisher (polls SQS, publishes to Redis) ─
+  event-publisher:
+    build: ./lambda-event-publisher
+    environment:
+      SQS_ENDPOINT: http://elasticmq:9324
+      SQS_QUEUE_URL: http://elasticmq:9324/queue/integration-queue
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PUBSUB_TOPIC: integration-events
+    depends_on:
+      elasticmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - integration-net
+
+  # ── Redis (Pub/Sub – simulates SNS / EventBridge) ─────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - integration-net
+
+  # ── Pub/Sub Subscriber (listens on Redis topic) ────────────────
+  pubsub-subscriber:
+    build: ./pubsub-subscriber
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PUBSUB_TOPIC: integration-events
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - integration-net
+
+networks:
+  integration-net:
+    driver: bridge

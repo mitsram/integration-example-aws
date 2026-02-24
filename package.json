@@ -1,0 +1,18 @@
+{
+  "name": "integration-example-aws",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "integration-layer/lambda-soap-processor",
+    "integration-layer/lambda-event-publisher",
+    "integration-layer/pubsub-subscriber",
+    "integration-layer/soap-client"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev:soap-processor": "npm run dev --workspace=integration-layer/lambda-soap-processor",
+    "dev:event-publisher": "npm run dev --workspace=integration-layer/lambda-event-publisher",
+    "dev:subscriber": "npm run dev --workspace=integration-layer/pubsub-subscriber",
+    "test:client": "npm run dev --workspace=integration-layer/soap-client"
+  }
+}

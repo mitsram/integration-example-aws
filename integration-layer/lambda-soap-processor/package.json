@@ -1,0 +1,22 @@
+{
+  "name": "lambda-soap-processor",
+  "version": "1.0.0",
+  "description": "Lambda 1 – Receives SOAP XML from API Gateway, parses it, and pushes a JSON message onto the SQS-compatible queue (ElasticMQ)",
+  "main": "dist/app.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "ts-node src/app.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.700.0",
+    "express": "^4.21.0",
+    "fast-xml-parser": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "ts-node": "^10.9.0"
+  }
+}
