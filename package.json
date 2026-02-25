@@ -12,6 +12,10 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "test": "vitest run tests/integration && vitest run tests/e2e",
+    "test:watch": "vitest",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e",
     "dev:core-app-1": "npm run dev --workspace=core-app-1",
     "dev:siebel": "npm run dev --workspace=siebel",
     "dev:siebel-send": "npm run send --workspace=siebel",
@@ -20,5 +24,10 @@
     "dev:event-publisher": "npm run dev --workspace=integration-layer/lambda-event-publisher",
     "dev:subscriber": "npm run dev --workspace=integration-layer/pubsub-subscriber",
     "test:client": "npm run dev --workspace=integration-layer/soap-client"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "ioredis": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
