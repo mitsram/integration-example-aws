@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # ── API Gateway (Nginx reverse proxy) ──────────────────────────
   api-gateway:
@@ -35,15 +33,16 @@ services:
   elasticmq:
     image: softwaremill/elasticmq-native:latest
     ports:
-      - "9324:9324"
-      - "9325:9325"
+      - "9424:9324"
+      - "9425:9325"
     volumes:
       - ./elasticmq/elasticmq.conf:/opt/elasticmq.conf:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9324"]
+      test: ["CMD", "nc", "-z", "localhost", "9324"]
       interval: 5s
       timeout: 3s
-      retries: 5
+      retries: 10
+      start_period: 10s
     networks:
       - integration-net
 
@@ -68,7 +67,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
