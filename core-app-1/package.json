@@ -1,0 +1,17 @@
+{
+  "name": "core-app-1",
+  "version": "1.0.0",
+  "description": "Core App 1 – Sends planned outage SOAP messages to the integration layer",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "ts-node": "^10.9.0"
+  }
+}
