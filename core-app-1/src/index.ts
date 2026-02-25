@@ -1,19 +1,32 @@
 /**
  * Core App 1 – Planned Outage Notifier
  *
- * Sends a "Planned Outage" SOAP message to the integration-layer
- * pipeline via the API Gateway.
+ * Express server that exposes an HTTP endpoint to trigger sending
+ * "Planned Outage" SOAP messages to the integration-layer pipeline.
+ *
+ * Endpoints:
+ *   POST /api/send   – trigger a planned-outage SOAP message
+ *   GET  /health     – health check
  *
  * Usage:
- *   npx ts-node src/index.ts                          # defaults
- *   npx ts-node src/index.ts --region US-EAST-1       # custom region
- *   GATEWAY_URL=http://host:8080/soap npx ts-node src/index.ts
+ *   npx ts-node src/index.ts                     # start server on port 3001
+ *   PORT=3001 npx ts-node src/index.ts
  */
+
+import express, { Request, Response } from "express";
 
 // ── Config ──────────────────────────────────────────────────────
 const GATEWAY_URL = process.env.GATEWAY_URL ?? "http://localhost:8080/soap";
+const PORT = Number(process.env.PORT ?? 3001);
 
 // ── Types ───────────────────────────────────────────────────────
+interface OutageParams {
+  system?: string;
+  region?: string;
+  severity?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  description?: string;
+}
+
 interface OutageDetails {
   outageId: string;
   system: string;
@@ -46,38 +59,27 @@ function buildPlannedOutageSoap(details: OutageDetails): string {
 }
 
 // ── Helpers ─────────────────────────────────────────────────────
-function parseArgs(argv: string[]): Record<string, string> {
-  const args: Record<string, string> = {};
-  for (let i = 2; i < argv.length; i += 2) {
-    const key = argv[i]?.replace(/^--/, "");
-    const value = argv[i + 1];
-    if (key && value) args[key] = value;
-  }
-  return args;
-}
-
 function log(msg: string) {
   console.log(`[CORE-APP-1] ${msg}`);
 }
 
-// ── Main ────────────────────────────────────────────────────────
-async function main(): Promise<void> {
-  const args = parseArgs(process.argv);
-
-  // Build a sample planned-outage notification
+// ── Send outage notification ────────────────────────────────────
+async function sendOutageNotification(
+  params: OutageParams = {}
+): Promise<{ status: number; outage: OutageDetails; responseBody: string }> {
   const now = new Date();
   const startTime = new Date(now.getTime() + 2 * 60 * 60 * 1000); // +2 hours
-  const endTime = new Date(now.getTime() + 4 * 60 * 60 * 1000);   // +4 hours
+  const endTime = new Date(now.getTime() + 4 * 60 * 60 * 1000); // +4 hours
 
   const outage: OutageDetails = {
     outageId: `OUTAGE-${now.toISOString().replace(/[-:T.Z]/g, "").slice(0, 14)}`,
-    system: args.system ?? "Siebel CRM",
-    region: args.region ?? "US-WEST-2",
+    system: params.system ?? "Siebel CRM",
+    region: params.region ?? "US-WEST-2",
     scheduledStart: startTime.toISOString(),
     scheduledEnd: endTime.toISOString(),
-    severity: (args.severity as OutageDetails["severity"]) ?? "MEDIUM",
+    severity: params.severity ?? "MEDIUM",
     description:
-      args.description ??
+      params.description ??
       "Planned maintenance window for database migration and security patching",
   };
 
@@ -97,33 +99,69 @@ async function main(): Promise<void> {
   log("");
   log("Sending SOAP request …");
 
-  let response: Response;
-  try {
-    response = await fetch(GATEWAY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/xml; charset=utf-8" },
-      body: soapBody,
-    });
-  } catch (err) {
-    log(`✗ Failed to connect to ${GATEWAY_URL}`);
-    log("  Make sure the integration-layer stack is running:");
-    log("    cd integration-layer && docker compose up -d");
-    process.exit(1);
-  }
+  const response = await fetch(GATEWAY_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/xml; charset=utf-8" },
+    body: soapBody,
+  });
 
   const responseBody = await response.text();
 
   if (response.status === 200 || response.status === 202) {
     log(`✓ Outage notification accepted  [HTTP ${response.status}]`);
-    log("");
-    log("── SOAP Response ──────────────────────────────────────");
-    log(responseBody);
-    log("───────────────────────────────────────────────────────");
   } else {
     log(`✗ Unexpected response  [HTTP ${response.status}]`);
-    log(responseBody);
-    process.exit(1);
   }
+
+  return { status: response.status, outage, responseBody };
 }
 
-main();
+// ── Express app ─────────────────────────────────────────────────
+const app = express();
+app.use(express.json());
+
+app.post("/api/send", async (req: Request, res: Response) => {
+  const params: OutageParams = {
+    system: req.body?.system,
+    region: req.body?.region,
+    severity: req.body?.severity,
+    description: req.body?.description,
+  };
+
+  try {
+    const result = await sendOutageNotification(params);
+    res.status(200).json({
+      success: result.status === 200 || result.status === 202,
+      outage: result.outage,
+      integrationResponse: {
+        status: result.status,
+        body: result.responseBody,
+      },
+    });
+  } catch (err) {
+    log(`✗ Failed to send outage notification: ${err}`);
+    res.status(502).json({
+      success: false,
+      error: `Failed to connect to integration layer at ${GATEWAY_URL}`,
+    });
+  }
+});
+
+app.get("/health", (_req: Request, res: Response) => {
+  res.json({ status: "ok", service: "core-app-1" });
+});
+
+// ── Start ───────────────────────────────────────────────────────
+app.listen(PORT, () => {
+  log("");
+  log("╔═══════════════════════════════════════════════════════╗");
+  log("║  CORE APP 1 – Planned Outage Server                   ║");
+  log("╠═══════════════════════════════════════════════════════╣");
+  log(`║  Port       : ${PORT}`);
+  log(`║  Gateway    : ${GATEWAY_URL}`);
+  log("╠═══════════════════════════════════════════════════════╣");
+  log("║  POST /api/send  – trigger outage notification         ║");
+  log("║  GET  /health    – health check                        ║");
+  log("╚═══════════════════════════════════════════════════════╝");
+  log("");
+});

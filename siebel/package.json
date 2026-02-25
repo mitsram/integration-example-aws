@@ -11,9 +11,11 @@
     "listen": "ts-node src/event-listener.ts"
   },
   "dependencies": {
+    "express": "^4.21.0",
     "ioredis": "^5.4.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0",
     "ts-node": "^10.9.0"

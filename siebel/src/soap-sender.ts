@@ -4,16 +4,28 @@
  * Sends SOAP messages (e.g. service requests, account updates) to
  * the integration-layer pipeline via the API Gateway.
  *
- * Usage:
+ * Can be used standalone:
  *   npx ts-node src/soap-sender.ts
  *   npx ts-node src/soap-sender.ts --type AccountUpdate --account ACC-100
- *   GATEWAY_URL=http://host:8080/soap npx ts-node src/soap-sender.ts
+ *
+ * Or imported and called with params:
+ *   import { sendSoapMessage } from './soap-sender';
+ *   await sendSoapMessage({ type: 'AccountUpdate', account: 'ACC-100' });
  */
 
 // ── Config ──────────────────────────────────────────────────────
 const GATEWAY_URL = process.env.GATEWAY_URL ?? "http://localhost:8080/soap";
 
 // ── Types ───────────────────────────────────────────────────────
+export interface SiebelSendParams {
+  type?: string;
+  account?: string;
+  contact?: string;
+  service?: string;
+  priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT";
+  description?: string;
+}
+
 interface SiebelMessage {
   requestId: string;
   action: string;
@@ -22,6 +34,12 @@ interface SiebelMessage {
   serviceType: string;
   priority: "LOW" | "NORMAL" | "HIGH" | "URGENT";
   description: string;
+}
+
+export interface SendResult {
+  status: number;
+  message: SiebelMessage;
+  responseBody: string;
 }
 
 // ── SOAP builder ────────────────────────────────────────────────
@@ -61,8 +79,11 @@ function log(msg: string) {
 }
 
 // ── Main ────────────────────────────────────────────────────────
-export async function sendSoapMessage(): Promise<void> {
-  const args = parseArgs(process.argv);
+export async function sendSoapMessage(
+  params?: SiebelSendParams
+): Promise<SendResult> {
+  // Use provided params, fall back to CLI args
+  const args = params ?? parseArgs(process.argv) as SiebelSendParams;
 
   const now = new Date();
   const message: SiebelMessage = {
@@ -71,7 +92,7 @@ export async function sendSoapMessage(): Promise<void> {
     accountId: args.account ?? "ACC-2048",
     contactName: args.contact ?? "John Doe",
     serviceType: args.service ?? "Billing Inquiry",
-    priority: (args.priority as SiebelMessage["priority"]) ?? "NORMAL",
+    priority: args.priority ?? "NORMAL",
     description:
       args.description ??
       "Customer requesting invoice correction for account overcharge",
@@ -93,36 +114,27 @@ export async function sendSoapMessage(): Promise<void> {
   log("");
   log("Sending SOAP request …");
 
-  let response: Response;
-  try {
-    response = await fetch(GATEWAY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/xml; charset=utf-8" },
-      body: soapBody,
-    });
-  } catch {
-    log(`✗ Failed to connect to ${GATEWAY_URL}`);
-    log("  Make sure the integration-layer stack is running:");
-    log("    cd integration-layer && docker compose up -d");
-    process.exit(1);
-  }
+  const response = await fetch(GATEWAY_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/xml; charset=utf-8" },
+    body: soapBody,
+  });
 
   const responseBody = await response.text();
 
   if (response.status === 200 || response.status === 202) {
     log(`✓ Message accepted  [HTTP ${response.status}]`);
-    log("");
-    log("── SOAP Response ──────────────────────────────────────");
-    log(responseBody);
-    log("───────────────────────────────────────────────────────");
   } else {
     log(`✗ Unexpected response  [HTTP ${response.status}]`);
-    log(responseBody);
-    process.exit(1);
   }
+
+  return { status: response.status, message, responseBody };
 }
 
 // Run if executed directly
 if (require.main === module) {
-  sendSoapMessage();
+  sendSoapMessage().catch((err) => {
+    log(`✗ Failed: ${err}`);
+    process.exit(1);
+  });
 }
