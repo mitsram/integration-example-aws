@@ -4,6 +4,7 @@
   "private": true,
   "workspaces": [
     "core-app-1",
+    "siebel",
     "integration-layer/lambda-soap-processor",
     "integration-layer/lambda-event-publisher",
     "integration-layer/pubsub-subscriber",
@@ -12,6 +13,9 @@
   "scripts": {
     "build": "npm run build --workspaces",
     "dev:core-app-1": "npm run dev --workspace=core-app-1",
+    "dev:siebel": "npm run dev --workspace=siebel",
+    "dev:siebel-send": "npm run send --workspace=siebel",
+    "dev:siebel-listen": "npm run listen --workspace=siebel",
     "dev:soap-processor": "npm run dev --workspace=integration-layer/lambda-soap-processor",
     "dev:event-publisher": "npm run dev --workspace=integration-layer/lambda-event-publisher",
     "dev:subscriber": "npm run dev --workspace=integration-layer/pubsub-subscriber",

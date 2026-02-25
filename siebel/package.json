@@ -1,0 +1,21 @@
+{
+  "name": "siebel",
+  "version": "1.0.0",
+  "description": "Siebel – Sends SOAP messages to integration-layer API Gateway and listens for events from Redis Pub/Sub (message bus)",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "send": "ts-node src/soap-sender.ts",
+    "listen": "ts-node src/event-listener.ts"
+  },
+  "dependencies": {
+    "ioredis": "^5.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "ts-node": "^10.9.0"
+  }
+}
