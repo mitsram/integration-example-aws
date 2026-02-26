@@ -1,0 +1,9 @@
+{
+  "name": "@org/integration-contracts",
+  "version": "1.0.0",
+  "description": "Shared contract schemas for cross-service validation (would be a published npm package in multi-repo setup)",
+  "main": "schemas.ts",
+  "dependencies": {
+    "zod": "^3.0.0"
+  }
+}

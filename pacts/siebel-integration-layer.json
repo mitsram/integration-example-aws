@@ -1,0 +1,66 @@
+{
+  "consumer": {
+    "name": "siebel"
+  },
+  "interactions": [
+    {
+      "description": "a ServiceRequest SOAP request from siebel",
+      "providerStates": [
+        {
+          "name": "the integration layer is available"
+        }
+      ],
+      "request": {
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n                  xmlns:req=\"http://example.com/integration/request\">\n  <soapenv:Header/>\n  <soapenv:Body>\n    <req:ProcessRequest>\n      <req:RequestId>SBL-20260101120000</req:RequestId>\n      <req:Action>ServiceRequest</req:Action>\n      <req:AccountId>ACC-2048</req:AccountId>\n      <req:ContactName>John Doe</req:ContactName>\n      <req:ServiceType>Billing Inquiry</req:ServiceType>\n      <req:Priority>NORMAL</req:Priority>\n      <req:Description>Customer requesting invoice correction</req:Description>\n      <req:Source>Siebel CRM</req:Source>\n    </req:ProcessRequest>\n  </soapenv:Body>\n</soapenv:Envelope>",
+        "headers": {
+          "Content-Type": "text/xml; charset=utf-8"
+        },
+        "method": "POST",
+        "path": "/soap"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": "text/xml; charset=utf-8"
+        },
+        "status": 202
+      }
+    },
+    {
+      "description": "an AccountUpdate SOAP request from siebel",
+      "providerStates": [
+        {
+          "name": "the integration layer is available"
+        }
+      ],
+      "request": {
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n                  xmlns:req=\"http://example.com/integration/request\">\n  <soapenv:Header/>\n  <soapenv:Body>\n    <req:ProcessRequest>\n      <req:RequestId>SBL-20260101120001</req:RequestId>\n      <req:Action>AccountUpdate</req:Action>\n      <req:AccountId>ACC-5555</req:AccountId>\n      <req:ContactName>Jane Smith</req:ContactName>\n      <req:ServiceType>Premium Support</req:ServiceType>\n      <req:Priority>URGENT</req:Priority>\n      <req:Description>VIP account escalation</req:Description>\n      <req:Source>Siebel CRM</req:Source>\n    </req:ProcessRequest>\n  </soapenv:Body>\n</soapenv:Envelope>",
+        "headers": {
+          "Content-Type": "text/xml; charset=utf-8"
+        },
+        "method": "POST",
+        "path": "/soap"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": "text/xml; charset=utf-8"
+        },
+        "status": 202
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "16.2.0"
+    },
+    "pactRust": {
+      "ffi": "0.4.28",
+      "models": "1.3.5"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "integration-layer"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "consumer": {
+    "name": "core-app-1"
+  },
+  "interactions": [
+    {
+      "description": "a PlannedOutage SOAP request from core-app-1",
+      "providerStates": [
+        {
+          "name": "the integration layer is available"
+        }
+      ],
+      "request": {
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n                  xmlns:req=\"http://example.com/integration/request\">\n  <soapenv:Header/>\n  <soapenv:Body>\n    <req:ProcessRequest>\n      <req:RequestId>OUTAGE-20260101120000</req:RequestId>\n      <req:Action>PlannedOutage</req:Action>\n      <req:System>Siebel CRM</req:System>\n      <req:Region>US-WEST-2</req:Region>\n      <req:ScheduledStart>2026-01-01T14:00:00.000Z</req:ScheduledStart>\n      <req:ScheduledEnd>2026-01-01T16:00:00.000Z</req:ScheduledEnd>\n      <req:Severity>MEDIUM</req:Severity>\n      <req:Description>Planned maintenance window</req:Description>\n    </req:ProcessRequest>\n  </soapenv:Body>\n</soapenv:Envelope>",
+        "headers": {
+          "Content-Type": "text/xml; charset=utf-8"
+        },
+        "method": "POST",
+        "path": "/soap"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": "text/xml; charset=utf-8"
+        },
+        "status": 202
+      }
+    },
+    {
+      "description": "an XML request without SOAP Body from core-app-1",
+      "providerStates": [
+        {
+          "name": "the integration layer is available"
+        }
+      ],
+      "request": {
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><data>no soap here</data></root>",
+        "headers": {
+          "Content-Type": "text/xml; charset=utf-8"
+        },
+        "method": "POST",
+        "path": "/soap"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": "text/xml; charset=utf-8"
+        },
+        "status": 400
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "16.2.0"
+    },
+    "pactRust": {
+      "ffi": "0.4.28",
+      "models": "1.3.5"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "integration-layer"
+  }
+}

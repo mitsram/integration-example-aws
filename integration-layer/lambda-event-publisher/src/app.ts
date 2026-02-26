@@ -37,14 +37,14 @@ function log(msg: string, ...args: unknown[]) {
   console.log(`${ts} [EVENT-PUBLISHER] ${msg}`, ...args);
 }
 
-interface SqsMessageBody {
+export interface SqsMessageBody {
   requestId?: string;
   source?: string;
   timestamp?: string;
   payload?: Record<string, unknown>;
 }
 
-interface IntegrationEvent {
+export interface IntegrationEvent {
   eventType: string;
   source: string;
   timestamp: string;
@@ -57,7 +57,7 @@ interface IntegrationEvent {
   };
 }
 
-function processMessage(body: SqsMessageBody): IntegrationEvent {
+export function processMessage(body: SqsMessageBody): IntegrationEvent {
   return {
     eventType: "IntegrationEvent",
     source: "event-publisher",
@@ -135,4 +135,7 @@ async function pollLoop(): Promise<void> {
   }
 }
 
-pollLoop();
+// Only start polling when run directly (not when imported for testing)
+if (require.main === module) {
+  pollLoop();
+}

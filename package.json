@@ -23,11 +23,16 @@
     "dev:soap-processor": "npm run dev --workspace=integration-layer/lambda-soap-processor",
     "dev:event-publisher": "npm run dev --workspace=integration-layer/lambda-event-publisher",
     "dev:subscriber": "npm run dev --workspace=integration-layer/pubsub-subscriber",
-    "test:client": "npm run dev --workspace=integration-layer/soap-client"
+    "test:client": "npm run dev --workspace=integration-layer/soap-client",
+    "test:contract": "vitest run --config vitest.config.contract.ts",
+    "test:contract:consumer": "vitest run --config vitest.config.contract.ts consumer",
+    "test:contract:provider": "vitest run --config vitest.config.contract.ts provider"
   },
   "devDependencies": {
+    "@pact-foundation/pact": "^16.2.0",
     "@types/node": "^25.3.0",
     "ioredis": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "zod": "^4.3.6"
   }
 }
