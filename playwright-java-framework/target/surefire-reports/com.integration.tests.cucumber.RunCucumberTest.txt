@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.integration.tests.cucumber.RunCucumberTest
+-------------------------------------------------------------------------------
+Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.272 s -- in com.integration.tests.cucumber.RunCucumberTest

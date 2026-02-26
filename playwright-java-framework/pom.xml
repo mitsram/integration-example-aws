@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.integration</groupId>
+    <artifactId>playwright-java-framework</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>Playwright Java Framework</name>
+    <description>
+        Playwright-based Java test framework supporting UI, API, and contract testing.
+        Extensible for Cucumber BDD. Enforces Page Object pattern for UI tests.
+    </description>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Dependency versions -->
+        <playwright.version>1.50.0</playwright.version>
+        <junit.version>5.11.4</junit.version>
+        <pact.version>4.6.16</pact.version>
+        <jackson.version>2.18.2</jackson.version>
+        <jedis.version>5.2.0</jedis.version>
+        <cucumber.version>7.21.1</cucumber.version>
+        <slf4j.version>2.0.16</slf4j.version>
+        <assertj.version>3.27.3</assertj.version>
+
+        <!-- Plugin versions -->
+        <surefire.version>3.5.2</surefire.version>
+
+        <!-- Default environment -->
+        <test.env>local</test.env>
+    </properties>
+
+    <dependencies>
+        <!-- ── Playwright ────────────────────────────────────── -->
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>${playwright.version}</version>
+        </dependency>
+
+        <!-- ── JUnit 5 ──────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ── Pact JVM (consumer + provider) ────────────────── -->
+        <dependency>
+            <groupId>au.com.dius.pact.consumer</groupId>
+            <artifactId>junit5</artifactId>
+            <version>${pact.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>au.com.dius.pact.provider</groupId>
+            <artifactId>junit5</artifactId>
+            <version>${pact.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ── Jackson (JSON parsing) ────────────────────────── -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- ── Jedis (Redis client for Pub/Sub events) ───────── -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>${jedis.version}</version>
+        </dependency>
+
+        <!-- ── Cucumber (BDD scaffolding) ────────────────────── -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit-platform-engine</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <version>1.11.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ── AssertJ (fluent assertions) ───────────────────── -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ── Logging ───────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- ── Compiler ─────────────────────────────────── -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <!-- ── Surefire (unit + integration tests) ──────── -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <test.env>${test.env}</test.env>
+                    </systemPropertyVariables>
+                    <groups>${test.groups}</groups>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- ── Profiles for different test suites ─────────────────── -->
+    <profiles>
+        <profile>
+            <id>integration</id>
+            <properties>
+                <test.groups>integration</test.groups>
+            </properties>
+        </profile>
+        <profile>
+            <id>e2e</id>
+            <properties>
+                <test.groups>e2e</test.groups>
+            </properties>
+        </profile>
+        <profile>
+            <id>contract</id>
+            <properties>
+                <test.groups>contract</test.groups>
+            </properties>
+        </profile>
+        <profile>
+            <id>cucumber</id>
+            <properties>
+                <test.groups>cucumber</test.groups>
+            </properties>
+        </profile>
+        <profile>
+            <id>docker</id>
+            <properties>
+                <test.env>docker</test.env>
+            </properties>
+        </profile>
+        <profile>
+            <id>staging</id>
+            <properties>
+                <test.env>staging</test.env>
+            </properties>
+        </profile>
+    </profiles>
+</project>

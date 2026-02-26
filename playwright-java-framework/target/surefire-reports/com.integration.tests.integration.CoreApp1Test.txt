@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.integration.tests.integration.CoreApp1Test
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.634 s -- in com.integration.tests.integration.CoreApp1Test

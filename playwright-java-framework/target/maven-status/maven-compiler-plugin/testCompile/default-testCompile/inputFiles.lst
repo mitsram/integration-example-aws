@@ -1,0 +1,13 @@
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/base/BaseTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/contract/consumer/CoreApp1SoapConsumerPactTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/contract/consumer/SiebelEventConsumerPactTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/contract/consumer/SiebelSoapConsumerPactTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/contract/provider/IntegrationEventProviderPactTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/contract/provider/SoapApiProviderPactTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/cucumber/RunCucumberTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/cucumber/steps/IntegrationSteps.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/e2e/FullPipelineTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/integration/ApiGatewayTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/integration/CoreApp1Test.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/integration/InfrastructureTest.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/test/java/com/integration/tests/integration/SiebelTest.java

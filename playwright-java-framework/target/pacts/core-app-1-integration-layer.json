@@ -1,0 +1,88 @@
+{
+  "consumer": {
+    "name": "core-app-1"
+  },
+  "interactions": [
+    {
+      "description": "a PlannedOutage SOAP request from core-app-1",
+      "key": "c08d73ce",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the integration layer is available"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n                  xmlns:req=\"http://example.com/integration/request\">\n  <soapenv:Header/>\n  <soapenv:Body>\n    <req:ProcessRequest>\n      <req:RequestId>OUTAGE-20260101120000</req:RequestId>\n      <req:Action>PlannedOutage</req:Action>\n      <req:System>Siebel CRM</req:System>\n      <req:Region>US-WEST-2</req:Region>\n      <req:ScheduledStart>2026-01-01T14:00:00.000Z</req:ScheduledStart>\n      <req:ScheduledEnd>2026-01-01T16:00:00.000Z</req:ScheduledEnd>\n      <req:Severity>MEDIUM</req:Severity>\n      <req:Description>Planned maintenance window</req:Description>\n    </req:ProcessRequest>\n  </soapenv:Body>\n</soapenv:Envelope>",
+          "contentType": "text/xml; charset=utf-8",
+          "contentTypeHint": "DEFAULT",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "text/xml; charset=utf-8"
+          ]
+        },
+        "method": "POST",
+        "path": "/soap"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "text/xml; charset=utf-8"
+          ]
+        },
+        "status": 202
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "an XML request without SOAP Body from core-app-1",
+      "key": "292d4128",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "the integration layer is available"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><data>no soap here</data></root>",
+          "contentType": "text/xml; charset=utf-8",
+          "contentTypeHint": "DEFAULT",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "text/xml; charset=utf-8"
+          ]
+        },
+        "method": "POST",
+        "path": "/soap"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": [
+            "text/xml; charset=utf-8"
+          ]
+        },
+        "status": 400
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.16"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "integration-layer"
+  }
+}

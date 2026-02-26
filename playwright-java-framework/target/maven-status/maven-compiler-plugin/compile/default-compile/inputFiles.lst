@@ -1,0 +1,8 @@
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/api/ApiClient.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/api/SoapClient.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/browser/BrowserFactory.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/config/Environment.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/config/TestConfig.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/pages/BasePage.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/utils/EventCollector.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/utils/WaitUtils.java

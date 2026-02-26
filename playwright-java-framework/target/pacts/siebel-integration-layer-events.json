@@ -1,0 +1,182 @@
+{
+  "consumer": {
+    "name": "siebel"
+  },
+  "interactions": [
+    {
+      "contents": {
+        "content": {
+          "detail": {
+            "processedPayload": {
+
+            },
+            "status": "PROCESSED"
+          },
+          "eventType": "IntegrationEvent",
+          "source": "event-publisher",
+          "timestamp": "2026-01-01T12:00:00.000Z"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "an IntegrationEvent with minimal payload",
+      "key": "7da41483",
+      "matchingRules": {
+        "body": {
+          "$.detail.status": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.eventType": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.source": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.timestamp": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    },
+    {
+      "contents": {
+        "content": {
+          "detail": {
+            "originalSource": "soap-processor",
+            "originalTimestamp": "2026-01-01T11:59:00.000Z",
+            "processedPayload": {
+              "AccountId": "ACC-2048",
+              "Action": "ServiceRequest"
+            },
+            "requestId": "SBL-20260101120000",
+            "status": "PROCESSED"
+          },
+          "eventType": "IntegrationEvent",
+          "source": "event-publisher",
+          "timestamp": "2026-01-01T12:00:00.000Z"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "an IntegrationEvent with status PROCESSED",
+      "key": "ddd2817a",
+      "matchingRules": {
+        "body": {
+          "$.detail.originalSource": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.detail.originalTimestamp": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.detail.processedPayload.AccountId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.detail.processedPayload.Action": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.detail.requestId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.detail.status": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.eventType": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.source": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.timestamp": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.16"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "integration-layer-events"
+  }
+}

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.integration.tests.contract.consumer.SiebelSoapConsumerPactTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.462 s -- in com.integration.tests.contract.consumer.SiebelSoapConsumerPactTest

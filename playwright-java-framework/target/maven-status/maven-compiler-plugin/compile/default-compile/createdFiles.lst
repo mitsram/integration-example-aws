@@ -1,0 +1,11 @@
+com/integration/framework/pages/BasePage.class
+com/integration/framework/config/TestConfig.class
+com/integration/framework/utils/EventCollector.class
+com/integration/framework/browser/BrowserFactory.class
+com/integration/framework/api/ApiClient.class
+com/integration/framework/utils/EventCollector$1.class
+com/integration/framework/api/SoapClient.class
+com/integration/framework/api/SoapClient$SoapResponse.class
+com/integration/framework/utils/EventCollector$Waiter.class
+com/integration/framework/utils/WaitUtils.class
+com/integration/framework/config/Environment.class

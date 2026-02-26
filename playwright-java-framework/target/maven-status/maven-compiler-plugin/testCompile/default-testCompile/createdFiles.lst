@@ -1,0 +1,13 @@
+com/integration/tests/integration/CoreApp1Test.class
+com/integration/tests/integration/ApiGatewayTest.class
+com/integration/tests/contract/consumer/CoreApp1SoapConsumerPactTest.class
+com/integration/tests/integration/SiebelTest.class
+com/integration/tests/contract/provider/IntegrationEventProviderPactTest.class
+com/integration/tests/integration/InfrastructureTest.class
+com/integration/tests/contract/consumer/SiebelEventConsumerPactTest.class
+com/integration/tests/contract/consumer/SiebelSoapConsumerPactTest.class
+com/integration/tests/cucumber/steps/IntegrationSteps.class
+com/integration/tests/base/BaseTest.class
+com/integration/tests/contract/provider/SoapApiProviderPactTest.class
+com/integration/tests/cucumber/RunCucumberTest.class
+com/integration/tests/e2e/FullPipelineTest.class
