@@ -4,6 +4,7 @@
   "private": true,
   "workspaces": [
     "core-app-1",
+    "core-app-2",
     "siebel",
     "integration-layer/lambda-soap-processor",
     "integration-layer/lambda-event-publisher",
@@ -17,6 +18,9 @@
     "test:integration": "vitest run tests/integration",
     "test:e2e": "vitest run tests/e2e",
     "dev:core-app-1": "npm run dev --workspace=core-app-1",
+    "dev:core-app-1:client": "npm run dev:client --workspace=core-app-1",
+    "dev:core-app-2": "npm run dev:server --workspace=core-app-2",
+    "dev:core-app-2:client": "npm run dev:client --workspace=core-app-2",
     "dev:siebel": "npm run dev --workspace=siebel",
     "dev:siebel-send": "npm run send --workspace=siebel",
     "dev:siebel-listen": "npm run listen --workspace=siebel",
