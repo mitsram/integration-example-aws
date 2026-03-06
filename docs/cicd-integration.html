@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CI/CD Integration — Pipelines &amp; Process</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #172b4d;
+      background: #f4f5f7;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .page-wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────── */
+    .sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: #0052cc;
+      color: #fff;
+      padding: 32px 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a5c8ff;
+      padding: 0 24px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      margin-bottom: 16px;
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 7px 24px;
+      color: #deebff;
+      text-decoration: none;
+      font-size: 13.5px;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      background: rgba(255,255,255,0.12);
+      border-left-color: #4fc3f7;
+      color: #fff;
+    }
+
+    .sidebar nav .nav-sub {
+      padding-left: 38px;
+      font-size: 12.5px;
+      color: #a5c8ff;
+    }
+
+    /* ── Main Content ─────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      padding: 48px 56px;
+      max-width: 980px;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    .doc-header {
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #dfe1e6;
+    }
+
+    .doc-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #0052cc;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .meta-tags {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .meta-tag {
+      background: #e3f2fd;
+      color: #1565c0;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid #bbdefb;
+    }
+
+    /* ── Sections ─────────────────────────────────────────────── */
+    section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0052cc;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e3f2fd;
+      scroll-margin-top: 20px;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #172b4d;
+      margin: 24px 0 10px;
+      scroll-margin-top: 20px;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #344563;
+    }
+
+    /* ── Callout ──────────────────────────────────────────────── */
+    .callout {
+      background: #e3f2fd;
+      border-left: 4px solid #1565c0;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 16px 0 24px;
+      font-size: 13.5px;
+      color: #0d47a1;
+    }
+
+    .callout strong { color: #0052cc; }
+
+    /* ── Diagrams ─────────────────────────────────────────────── */
+    .diagram-card {
+      background: #fff;
+      border: 1px solid #dfe1e6;
+      border-radius: 8px;
+      padding: 24px;
+      margin: 20px 0;
+      overflow-x: auto;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .diagram-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #6b778c;
+      margin-bottom: 12px;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ── Tables ───────────────────────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0 24px;
+      border-radius: 6px;
+      border: 1px solid #dfe1e6;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      background: #fff;
+    }
+
+    thead th {
+      background: #0052cc;
+      color: #fff;
+      font-weight: 600;
+      padding: 10px 14px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 9px 14px;
+      border-top: 1px solid #f0f1f3;
+      color: #344563;
+      vertical-align: top;
+    }
+
+    tbody tr:hover td { background: #f8f9ff; }
+
+    tbody td strong { color: #172b4d; font-weight: 600; }
+
+    /* ── Code / Pre ───────────────────────────────────────────── */
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 16px 20px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 12.5px;
+      line-height: 1.6;
+      margin: 16px 0 24px;
+    }
+
+    code {
+      background: #ebecf0;
+      color: #344563;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 12.5px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* ── Lists ────────────────────────────────────────────────── */
+    ul, ol {
+      padding-left: 22px;
+      margin-bottom: 12px;
+      color: #344563;
+    }
+
+    li { margin-bottom: 5px; }
+    li code { font-size: 12px; }
+
+    /* ── Badge chips ──────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .badge-blue  { background: #deebff; color: #0052cc; }
+    .badge-green { background: #e3fcef; color: #006644; }
+    .badge-amber { background: #fffae6; color: #974f0c; }
+    .badge-red   { background: #ffebe6; color: #bf2600; }
+
+    /* ── Appendix ─────────────────────────────────────────────── */
+    .appendix-section {
+      background: #f8f9ff;
+      border: 1px solid #dfe1e6;
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin-bottom: 32px;
+    }
+
+    .appendix-section h2 {
+      color: #344563;
+      border-bottom-color: #dfe1e6;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid #dfe1e6;
+      font-size: 12px;
+      color: #6b778c;
+      text-align: center;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-title">CI/CD Integration</div>
+    <nav>
+      <a href="#overview">1. Overview</a>
+      <a href="#build-pipeline">2. Build Pipeline</a>
+      <a href="#release-pipeline">3. Release Pipeline</a>
+      <a href="#promotion-flow">4. Environment Promotion</a>
+      <a href="#stages">5. Pipeline Stages</a>
+      <a href="#stages-source"   class="nav-sub">5.1 Source</a>
+      <a href="#stages-test"     class="nav-sub">5.2 Test</a>
+      <a href="#stages-quality"  class="nav-sub">5.3 Quality</a>
+      <a href="#stages-release"  class="nav-sub">5.4 Release</a>
+      <a href="#stages-package"  class="nav-sub">5.5 Package</a>
+      <a href="#stages-aggregate"class="nav-sub">5.6 Aggregate</a>
+      <a href="#stages-promote"  class="nav-sub">5.7 Promote</a>
+      <a href="#stages-deploy"   class="nav-sub">5.8 Deploy</a>
+      <a href="#stages-acceptance"class="nav-sub">5.9 Acceptance</a>
+      <a href="#env-strategy">6. Environment Strategy</a>
+      <a href="#artefacts">7. Artefact Management</a>
+      <a href="#quality-gates">8. Quality Gates</a>
+      <a href="#appendix-e2e">Appendix: E2E View</a>
+      <a href="#appendix-holistic">Appendix: Holistic View</a>
+      <a href="#appendix-history">Revision History</a>
+    </nav>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────────── -->
+  <main class="main">
+
+    <div class="doc-header">
+      <h1>CI/CD Integration — Pipelines &amp; Process</h1>
+      <div class="meta-tags">
+        <span class="meta-tag">Project: AWS Integration Example</span>
+        <span class="meta-tag">Version: 1.0</span>
+        <span class="meta-tag">Date: 2026-03-07</span>
+        <span class="meta-tag">Platform: SOAP / Event-Driven</span>
+      </div>
+    </div>
+
+    <!-- ── 1. Overview ───────────────────────────────────────── -->
+    <section id="overview">
+      <h2>1. Overview</h2>
+      <p>
+        The CI/CD process uses two complementary pipelines — a <strong>Build Pipeline</strong> and a
+        <strong>Release Pipeline</strong> — orchestrated through AWS services. Each pipeline follows a
+        stage-gate model where artefacts are promoted between environments only after passing defined
+        quality gates.
+      </p>
+      <p>
+        The platform consists of multiple components: client applications (<code>core-app-1</code>,
+        <code>siebel</code>), an integration layer (API Gateway, soap-processor, event-publisher,
+        pubsub-subscriber), and a Java-based acceptance test framework. All components follow the same
+        pipeline structure.
+      </p>
+
+      <div class="diagram-card">
+        <div class="diagram-label">Pipeline relationship</div>
+        <div class="mermaid">
+flowchart LR
+    BP["Build Pipeline"]
+    RP["Release Pipeline"]
+    BP -- "Artefacts\n(Amazon S3 zip)" --> RP
+    RP -- "Promoted Artefacts\n(next env)" --> RP
+
+    style BP fill:#4A90D9,color:#fff,stroke:#2a6ab5
+    style RP fill:#2e7d32,color:#fff,stroke:#1b5e20
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>Key Principle:</strong> The output of one pipeline becomes the input of the next.
+        An Amazon S3 zip artefact produced by the Build Pipeline serves as the source for the Release
+        Pipeline. Promoted artefacts from one environment become the source for the next.
+      </div>
+    </section>
+
+    <!-- ── 2. Build Pipeline ─────────────────────────────────── -->
+    <section id="build-pipeline">
+      <h2>2. Build Pipeline</h2>
+      <p>
+        The Build Pipeline compiles, tests, analyses, packages, and promotes artefacts. It runs on
+        every code commit and produces a versioned, deployable artefact bundle.
+      </p>
+
+      <div class="diagram-card">
+        <div class="diagram-label">Build pipeline — stage flow</div>
+        <div class="mermaid">
+flowchart LR
+    subgraph Build["Build Pipeline"]
+        direction LR
+        S["Source\n(Amazon S3)"]
+        T["Test\n(JUnit)"]
+        Q["Quality\n(SonarCloud)"]
+        R["Release\n(Maven)"]
+        P["Package\n(JFrog / Jars / Lambda)"]
+        A["Aggregate\n(AWS CodeBuild)"]
+        PR["Promote\n(Artefacts → S3 zip)"]
+    end
+    S --> T --> Q --> R --> P --> A --> PR
+
+    style S  fill:#FF9900,color:#fff,stroke:#cc7a00
+    style T  fill:#4A90D9,color:#fff,stroke:#2a6ab5
+    style Q  fill:#4C9AFF,color:#fff,stroke:#2a6ab5
+    style R  fill:#6554C0,color:#fff,stroke:#4a3d8f
+    style P  fill:#36B37E,color:#fff,stroke:#258a5e
+    style A  fill:#FF9900,color:#fff,stroke:#cc7a00
+    style PR fill:#00875A,color:#fff,stroke:#005c3e
+        </div>
+      </div>
+
+      <h3>Stage Summary</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stage</th><th>Tool / Service</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Source</strong></td><td>Amazon S3</td><td>Retrieve source artefacts (code bundle or previous environment artefacts)</td></tr>
+            <tr><td><strong>Test</strong></td><td>JUnit 5</td><td>Run unit tests, contract consumer tests, and integration tests</td></tr>
+            <tr><td><strong>Quality</strong></td><td>SonarCloud</td><td>Static analysis — code smells, coverage, security vulnerabilities, duplication</td></tr>
+            <tr><td><strong>Release</strong></td><td>Maven</td><td>Version the build, resolve dependencies, produce release-ready binaries</td></tr>
+            <tr><td><strong>Package</strong></td><td>JFrog Artifactory</td><td>Publish JARs, Lambda deployment packages, and Node.js bundles to the artefact repository</td></tr>
+            <tr><td><strong>Aggregate</strong></td><td>AWS CodeBuild</td><td>Combine all artefacts into a single deployable bundle</td></tr>
+            <tr><td><strong>Promote</strong></td><td>Amazon S3</td><td>Store the final artefact as a versioned S3 zip for downstream consumption</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 3. Release Pipeline ───────────────────────────────── -->
+    <section id="release-pipeline">
+      <h2>3. Release Pipeline</h2>
+      <p>
+        The Release Pipeline takes a promoted artefact and deploys it to a target environment, runs
+        acceptance tests, and — on success — promotes the artefact for the next environment.
+      </p>
+
+      <div class="diagram-card">
+        <div class="diagram-label">Release pipeline — stage flow</div>
+        <div class="mermaid">
+flowchart LR
+    subgraph Release["Release Pipeline"]
+        direction LR
+        S["Source\n(Amazon S3)"]
+        D["Deploy"]
+        AC["Acceptance\n(Cucumber Tests)"]
+        PR["Promote\n(Artefacts → S3 zip)"]
+    end
+    S --> D --> AC --> PR
+
+    style S  fill:#FF9900,color:#fff,stroke:#cc7a00
+    style D  fill:#0052CC,color:#fff,stroke:#003d99
+    style AC fill:#FFAB00,color:#000,stroke:#cc8800
+    style PR fill:#00875A,color:#fff,stroke:#005c3e
+        </div>
+      </div>
+
+      <h3>Stage Summary</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stage</th><th>Tool / Service</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Source</strong></td><td>Amazon S3</td><td>Retrieve the promoted artefact zip from the previous pipeline or environment</td></tr>
+            <tr><td><strong>Deploy</strong></td><td>AWS CodeDeploy / CloudFormation</td><td>Deploy the artefact to the target environment (Lambda functions, Docker services, infra)</td></tr>
+            <tr><td><strong>Acceptance</strong></td><td>Cucumber 7 (BDD)</td><td>Run acceptance tests — Cucumber scenarios validate business-critical flows</td></tr>
+            <tr><td><strong>Promote</strong></td><td>Amazon S3</td><td>On success, package and store artefacts for the next environment's release pipeline</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 4. Environment Promotion Flow ────────────────────── -->
+    <section id="promotion-flow">
+      <h2>4. Environment Promotion Flow</h2>
+      <p>
+        Both pipelines are <strong>environment-agnostic</strong> — the same pipeline definition applies
+        to any environment. The source stage pulls artefacts from the previous environment's promoted output.
+      </p>
+
+      <div class="diagram-card">
+        <div class="diagram-label">Artefact promotion across environments</div>
+        <div class="mermaid">
+flowchart TB
+    subgraph DEV["Development"]
+        direction LR
+        DB["Build Pipeline"]
+        DR["Release Pipeline"]
+        DB --> DR
+    end
+    subgraph SIT["SIT (System Integration Testing)"]
+        direction LR
+        SB["Build Pipeline"]
+        SR["Release Pipeline"]
+        SB --> SR
+    end
+    subgraph UAT["UAT (User Acceptance Testing)"]
+        direction LR
+        UB["Build Pipeline"]
+        UR["Release Pipeline"]
+        UB --> UR
+    end
+    subgraph STG["Staging / Pre-Production"]
+        direction LR
+        STB["Build Pipeline"]
+        STR["Release Pipeline"]
+        STB --> STR
+    end
+    subgraph PROD["Production"]
+        direction LR
+        PB["Build Pipeline"]
+        PR["Release Pipeline"]
+        PB --> PR
+    end
+
+    DR  -- "Promoted Artefact (S3 zip)" --> SB
+    SR  -- "Promoted Artefact (S3 zip)" --> UB
+    UR  -- "Promoted Artefact (S3 zip)" --> STB
+    STR -- "Promoted Artefact (S3 zip)" --> PB
+
+    style DEV  fill:#e3f2fd,stroke:#1565c0
+    style SIT  fill:#e8f5e9,stroke:#2e7d32
+    style UAT  fill:#fff3e0,stroke:#e65100
+    style STG  fill:#f3e5f5,stroke:#6a1b9a
+    style PROD fill:#ffebee,stroke:#c62828
+        </div>
+      </div>
+
+      <h3>Environment Sequence</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Environment</th><th>Build Source</th><th>Release Source</th><th>Tests Run</th><th>Gate</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Development</strong></td><td>Git commit (S3 code bundle)</td><td>Build artefact</td><td>Unit, Contract, Integration, E2E</td><td>All tests pass, SonarCloud quality gate</td></tr>
+            <tr><td><strong>SIT</strong></td><td>DEV promoted artefact</td><td>SIT build artefact</td><td>Integration, E2E, Contract Provider</td><td>All tests pass</td></tr>
+            <tr><td><strong>UAT</strong></td><td>SIT promoted artefact</td><td>UAT build artefact</td><td>Cucumber BDD acceptance tests</td><td>PO sign-off</td></tr>
+            <tr><td><strong>Staging</strong></td><td>UAT promoted artefact</td><td>STG build artefact</td><td>Smoke, Performance (stress + soak)</td><td>Performance criteria met, zero S1/S2 defects</td></tr>
+            <tr><td><strong>Production</strong></td><td>STG promoted artefact</td><td>PROD build artefact</td><td>Smoke tests (post-deploy)</td><td>Change approval board</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 5. Pipeline Stages in Detail ─────────────────────── -->
+    <section id="stages">
+      <h2>5. Pipeline Stages in Detail</h2>
+
+      <h3 id="stages-source">5.1 Source (Amazon S3)</h3>
+      <p>
+        The source stage retrieves the input artefact bundle. For the initial build (Development), this
+        is the committed code stored as an S3 object. For subsequent environments, the source is the
+        promoted artefact zip from the previous environment.
+      </p>
+      <ul>
+        <li><strong>Trigger:</strong> Code push (Development) or manual/scheduled promotion (higher environments)</li>
+        <li><strong>Output:</strong> Extracted source code or artefact bundle in the build workspace</li>
+      </ul>
+
+      <h3 id="stages-test">5.2 Test (JUnit)</h3>
+      <p>Runs the automated test suite using JUnit 5 and Vitest.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Test Type</th><th>Framework</th><th>Scope</th><th style="text-align:center">Approx. Duration</th></tr></thead>
+          <tbody>
+            <tr><td>Contract Consumer</td><td>Pact (TS + JVM)</td><td>Schema validation (no infra)</td><td style="text-align:center">~5s</td></tr>
+            <tr><td>Contract Provider (Message)</td><td>Pact (TS + JVM)</td><td>Event schema (no infra)</td><td style="text-align:center">~3s</td></tr>
+            <tr><td>Infrastructure Health</td><td>Vitest / JUnit 5</td><td>Docker services reachable</td><td style="text-align:center">~2s</td></tr>
+            <tr><td>Integration API</td><td>Vitest / JUnit 5 + Playwright</td><td>SOAP endpoints, routing</td><td style="text-align:center">~10s</td></tr>
+            <tr><td>Contract Provider (HTTP)</td><td>Pact (TS + JVM)</td><td>Provider verification</td><td style="text-align:center">~5s</td></tr>
+            <tr><td>E2E Pipeline</td><td>Vitest / JUnit 5</td><td>Full async flow (HTTP → SQS → Redis)</td><td style="text-align:center">~45s</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="stages-quality">5.3 Quality (SonarCloud)</h3>
+      <p>Static analysis gate that blocks promotion if quality criteria are not met.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metric</th><th>Threshold</th></tr></thead>
+          <tbody>
+            <tr><td>Code Coverage</td><td>≥ 80%</td></tr>
+            <tr><td>Duplicated Lines</td><td>≤ 3%</td></tr>
+            <tr><td>New Code Smells</td><td>0 (on new code)</td></tr>
+            <tr><td>Security Vulnerabilities</td><td>0</td></tr>
+            <tr><td>Reliability Rating</td><td>A</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="stages-release">5.4 Release (Maven)</h3>
+      <p>Maven resolves dependencies, versions the build, and produces release-ready binaries.</p>
+      <ul>
+        <li>Java components: compiled JARs (playwright-java-framework, test utilities)</li>
+        <li>Node.js components: bundled via Vite and npm package scripts</li>
+        <li>Version tagging follows semantic versioning</li>
+      </ul>
+
+      <h3 id="stages-package">5.5 Package (JFrog Artifactory)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Artefact Type</th><th>Description</th><th>Repository</th></tr></thead>
+          <tbody>
+            <tr><td><strong>JARs</strong></td><td>Java framework, test utilities</td><td>JFrog Maven repository</td></tr>
+            <tr><td><strong>Lambda Packages</strong></td><td>soap-processor, event-publisher (zip bundles for AWS Lambda)</td><td>JFrog generic repository</td></tr>
+            <tr><td><strong>Node.js Bundles</strong></td><td>core-app-1, siebel, pubsub-subscriber</td><td>JFrog npm repository</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="stages-aggregate">5.6 Aggregate (AWS CodeBuild)</h3>
+      <p>AWS CodeBuild combines all individual artefacts into a single deployment bundle:</p>
+      <ol>
+        <li>Collect JARs from JFrog</li>
+        <li>Collect Lambda deployment zips</li>
+        <li>Collect Node.js built bundles</li>
+        <li>Collect Docker Compose configuration and Nginx configs</li>
+        <li>Bundle into a versioned composite artefact</li>
+      </ol>
+
+      <h3 id="stages-promote">5.7 Promote (Artefacts → Amazon S3 zip)</h3>
+      <p>The final artefact is stored in an S3 bucket with the following structure:</p>
+<pre>s3://project-artefacts/
+  └── {environment}/
+      └── {version}/
+          ├── manifest.json            # Artefact metadata, version, checksums
+          ├── lambdas/
+          │   ├── soap-processor.zip
+          │   └── event-publisher.zip
+          ├── apps/
+          │   ├── core-app-1.tar.gz
+          │   └── siebel.tar.gz
+          ├── infra/
+          │   ├── docker-compose.yml
+          │   └── nginx.conf
+          └── tests/
+              └── playwright-framework.jar</pre>
+
+      <h3 id="stages-deploy">5.8 Deploy</h3>
+      <p>Deployment to each environment uses environment-specific configuration:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Component</th><th>Deployment Method</th></tr></thead>
+          <tbody>
+            <tr><td>Lambda functions (soap-processor, event-publisher)</td><td>AWS Lambda update via CloudFormation / SAM</td></tr>
+            <tr><td>API Gateway</td><td>Nginx config reload or AWS API Gateway deployment</td></tr>
+            <tr><td>Queue (SQS)</td><td>Infrastructure-as-Code (CloudFormation)</td></tr>
+            <tr><td>Redis / Pub/Sub</td><td>ElastiCache configuration update</td></tr>
+            <tr><td>Client apps (core-app-1, siebel)</td><td>Container deployment or EC2 CodeDeploy</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="stages-acceptance">5.9 Acceptance (Cucumber Tests)</h3>
+      <p>Cucumber BDD scenarios run post-deploy to validate business-critical flows:</p>
+      <ul>
+        <li>SOAP request processing (PlannedOutage, ServiceRequest, AccountUpdate)</li>
+        <li>End-to-end event delivery through the full async pipeline</li>
+        <li>Cross-application round-trip (siebel event listener receives published events)</li>
+        <li>Error handling and negative scenarios</li>
+      </ul>
+    </section>
+
+    <!-- ── 6. Environment Strategy ────────────────────────────── -->
+    <section id="env-strategy">
+      <h2>6. Environment Strategy</h2>
+
+      <div class="diagram-card">
+        <div class="diagram-label">Environment progression</div>
+        <div class="mermaid">
+flowchart LR
+    DEV["DEV\nDocker Compose\n+ Node.js processes"]
+    SIT["SIT\nDocker Compose\n(dedicated host)"]
+    UAT["UAT\nAWS-native\n(SQS, ElastiCache)"]
+    STG["Staging\nAWS-native\n(production-like)"]
+    PROD["Production\nAWS-native\n(full scale)"]
+
+    DEV --> SIT --> UAT --> STG --> PROD
+
+    style DEV  fill:#e3f2fd,stroke:#1565c0
+    style SIT  fill:#e8f5e9,stroke:#2e7d32
+    style UAT  fill:#fff3e0,stroke:#e65100
+    style STG  fill:#f3e5f5,stroke:#6a1b9a
+    style PROD fill:#ffebee,stroke:#c62828
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Environment</th><th>Infrastructure</th><th>Config Source</th><th>Key Characteristics</th></tr></thead>
+          <tbody>
+            <tr><td><strong>DEV</strong></td><td>Docker Compose + local Node.js</td><td><code>config-local.properties</code></td><td>Fast iteration, ElasticMQ for SQS, Redis for Pub/Sub</td></tr>
+            <tr><td><strong>SIT</strong></td><td>Docker Compose on dedicated host</td><td><code>config-docker.properties</code></td><td>Shared team environment, full integration layer</td></tr>
+            <tr><td><strong>UAT</strong></td><td>AWS-native services</td><td><code>config-staging.properties</code></td><td>Real SQS, ElastiCache; PO-accessible</td></tr>
+            <tr><td><strong>Staging</strong></td><td>AWS-native (production mirror)</td><td><code>config-staging.properties</code></td><td>Performance testing, production-like scale</td></tr>
+            <tr><td><strong>Production</strong></td><td>AWS-native (full scale)</td><td>Production config</td><td>Blue/green deployment, monitoring, alerting</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 7. Artefact Management ─────────────────────────────── -->
+    <section id="artefacts">
+      <h2>7. Artefact Management</h2>
+
+      <h3>Artefact Lifecycle</h3>
+      <div class="diagram-card">
+        <div class="diagram-label">From source code to promoted artefact</div>
+        <div class="mermaid">
+flowchart LR
+    CODE["Source Code"]
+    BUILD["Build\n(compiled)"]
+    TEST["Tested\n(unit + contract)"]
+    QUALITY["Analysed\n(SonarCloud)"]
+    PKG["Packaged\n(JFrog)"]
+    BUNDLE["Bundled\n(S3 zip)"]
+    DEPLOY["Deployed\n(environment)"]
+    VERIFIED["Verified\n(acceptance)"]
+    PROMOTED["Promoted\n(next env S3 zip)"]
+
+    CODE --> BUILD --> TEST --> QUALITY --> PKG --> BUNDLE --> DEPLOY --> VERIFIED --> PROMOTED
+
+    style CODE     fill:#e0e0e0,stroke:#757575
+    style BUILD    fill:#bbdefb,stroke:#1565c0
+    style TEST     fill:#4A90D9,color:#fff,stroke:#2a6ab5
+    style QUALITY  fill:#4C9AFF,color:#fff,stroke:#2a6ab5
+    style PKG      fill:#36B37E,color:#fff,stroke:#258a5e
+    style BUNDLE   fill:#FF9900,color:#fff,stroke:#cc7a00
+    style DEPLOY   fill:#0052CC,color:#fff,stroke:#003d99
+    style VERIFIED fill:#FFAB00,color:#000,stroke:#cc8800
+    style PROMOTED fill:#00875A,color:#fff,stroke:#005c3e
+        </div>
+      </div>
+
+      <h3>Versioning Strategy</h3>
+      <ul>
+        <li><strong>Build version:</strong> <code>{major}.{minor}.{patch}-{buildNumber}</code> (e.g., <code>1.0.0-42</code>)</li>
+        <li><strong>Artefact naming:</strong> <code>{component}-{version}-{environment}.zip</code></li>
+        <li><strong>Immutable artefacts:</strong> Once promoted, an artefact is never modified — only replaced by a new version</li>
+        <li><strong>Retention:</strong> DEV artefacts retained 7 days; SIT/UAT 30 days; Staging/Production indefinitely</li>
+      </ul>
+    </section>
+
+    <!-- ── 8. Quality Gates ───────────────────────────────────── -->
+    <section id="quality-gates">
+      <h2>8. Quality Gates</h2>
+      <p>Each pipeline stage has defined quality gates that must pass before proceeding.</p>
+
+      <div class="diagram-card">
+        <div class="diagram-label">Gate progression</div>
+        <div class="mermaid">
+flowchart LR
+    subgraph Gates["Quality Gates"]
+        direction TB
+        G1["Gate 1: Tests\nAll pass, ≥80% coverage"]
+        G2["Gate 2: Quality\nSonarCloud green"]
+        G3["Gate 3: Package\nArtefact integrity verified"]
+        G4["Gate 4: Deploy\nHealth checks pass"]
+        G5["Gate 5: Acceptance\nCucumber scenarios green"]
+        G6["Gate 6: Promote\nSign-off obtained"]
+    end
+    G1 --> G2 --> G3 --> G4 --> G5 --> G6
+
+    style G1 fill:#4A90D9,color:#fff
+    style G2 fill:#4C9AFF,color:#fff
+    style G3 fill:#36B37E,color:#fff
+    style G4 fill:#0052CC,color:#fff
+    style G5 fill:#FFAB00,color:#000
+    style G6 fill:#00875A,color:#fff
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Gate</th><th>Criteria</th><th>Blocks</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Test</strong></td><td>All unit + contract + integration tests pass; coverage ≥ 80%</td><td>Build Pipeline progression</td></tr>
+            <tr><td><strong>Quality</strong></td><td>SonarCloud quality gate passes (zero vulnerabilities, rating A)</td><td>Build Pipeline progression</td></tr>
+            <tr><td><strong>Package</strong></td><td>All artefacts published successfully; checksums validated</td><td>Aggregation</td></tr>
+            <tr><td><strong>Deploy</strong></td><td>All health endpoints return 200; infrastructure connectivity confirmed</td><td>Acceptance testing</td></tr>
+            <tr><td><strong>Acceptance</strong></td><td>All Cucumber BDD scenarios pass</td><td>Environment promotion</td></tr>
+            <tr><td><strong>Promote</strong></td><td>Acceptance passed + manual sign-off (UAT/Staging/Production)</td><td>Next environment</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Contract Testing as a Gate</h3>
+      <p>Contract tests serve as an early gate in the Build Pipeline:</p>
+      <ul>
+        <li><strong>Consumer pact tests</strong> run in the Test stage (no infrastructure required, ~5s)</li>
+        <li><strong>Provider verification</strong> runs after Docker infrastructure is available (~5s)</li>
+        <li><strong><code>can-i-deploy</code></strong> check validates compatibility before any environment promotion</li>
+        <li>A contract failure blocks the pipeline within seconds — the fastest feedback loop</li>
+      </ul>
+    </section>
+
+    <!-- ── Appendix: E2E View ─────────────────────────────────── -->
+    <div class="appendix-section" id="appendix-e2e">
+      <h2>Appendix: End-to-End Pipeline View</h2>
+      <p>Combined view showing how the Build Pipeline feeds into the Release Pipeline and how promoted artefacts flow to the next environment.</p>
+      <div class="diagram-card">
+        <div class="diagram-label">Full end-to-end pipeline</div>
+        <div class="mermaid">
+flowchart TB
+    subgraph BP["Build Pipeline"]
+        direction LR
+        BS["Source\n(S3)"] --> BT["Test\n(JUnit)"] --> BQ["Quality\n(SonarCloud)"] --> BR["Release\n(Maven)"] --> BPK["Package\n(JFrog)"] --> BA["Aggregate\n(CodeBuild)"] --> BPR["Promote\n(S3 zip)"]
+    end
+    subgraph RP["Release Pipeline"]
+        direction LR
+        RS["Source\n(S3)"] --> RD["Deploy"] --> RA["Acceptance\n(Cucumber)"] --> RPR["Promote\n(S3 zip)"]
+    end
+
+    BPR -- "Artefact" --> RS
+    RPR -- "Promoted to next environment" --> BS2["Next Env\nBuild Source\n(S3)"]
+
+    style BP  fill:#e3f2fd,stroke:#1565c0
+    style RP  fill:#e8f5e9,stroke:#2e7d32
+    style BS  fill:#FF9900,color:#fff
+    style BT  fill:#4A90D9,color:#fff
+    style BQ  fill:#4C9AFF,color:#fff
+    style BR  fill:#6554C0,color:#fff
+    style BPK fill:#36B37E,color:#fff
+    style BA  fill:#FF9900,color:#fff
+    style BPR fill:#00875A,color:#fff
+    style RS  fill:#FF9900,color:#fff
+    style RD  fill:#0052CC,color:#fff
+    style RA  fill:#FFAB00,color:#000
+    style RPR fill:#00875A,color:#fff
+    style BS2 fill:#FF9900,color:#fff
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Appendix: Unified Holistic View ───────────────────── -->
+    <div class="appendix-section" id="appendix-holistic">
+      <h2>Appendix: Unified Holistic View</h2>
+      <p>The following diagram shows the complete CI/CD process in a single view — both pipelines, all stages, quality gates, artefact flow, and environment promotion chain.</p>
+      <div class="diagram-card">
+        <div class="diagram-label">Full holistic CI/CD view across all environments</div>
+        <div class="mermaid">
+flowchart TB
+    %% ── DEV Environment ─────────────────────────────────────
+    subgraph DEV["⬡ DEV Environment"]
+        direction TB
+
+        subgraph DEV_BUILD["Build Pipeline"]
+            direction LR
+            D_SRC["☁ Source\nAmazon S3\n(code bundle)"]
+            D_TST["⚙ Test\nJUnit / Vitest\nUnit · Contract\nIntegration · E2E"]
+            D_QAL["◈ Quality\nSonarCloud\nCoverage ≥80%\n0 Vulnerabilities"]
+            D_REL["⬢ Release\nMaven\nSemVer tagging"]
+            D_PKG["☐ Package\nJFrog\nJARs · Lambda zips\nNode.js bundles"]
+            D_AGG["☁ Aggregate\nAWS CodeBuild\nComposite bundle"]
+            D_PRM["✓ Promote\nArtefacts → S3 zip"]
+            D_SRC --> D_TST --> D_QAL --> D_REL --> D_PKG --> D_AGG --> D_PRM
+        end
+
+        subgraph DEV_REL["Release Pipeline"]
+            direction LR
+            DR_SRC["☁ Source\nS3 artefact"]
+            DR_DEP["▶ Deploy\nCodeDeploy\nCloudFormation"]
+            DR_ACC["✎ Acceptance\nCucumber BDD"]
+            DR_PRM["✓ Promote\nArtefacts → S3 zip"]
+            DR_SRC --> DR_DEP --> DR_ACC --> DR_PRM
+        end
+
+        D_PRM -- "artefact" --> DR_SRC
+    end
+
+    %% ── SIT Environment ─────────────────────────────────────
+    subgraph SIT["⬡ SIT Environment"]
+        direction TB
+
+        subgraph SIT_BUILD["Build Pipeline"]
+            direction LR
+            S_SRC["☁ Source\nDEV artefact"]
+            S_TST["⚙ Test\nIntegration · E2E\nContract Provider"]
+            S_QAL["◈ Quality\nSonarCloud"]
+            S_REL["⬢ Release\nMaven"]
+            S_PKG["☐ Package\nJFrog"]
+            S_AGG["☁ Aggregate\nCodeBuild"]
+            S_PRM["✓ Promote"]
+            S_SRC --> S_TST --> S_QAL --> S_REL --> S_PKG --> S_AGG --> S_PRM
+        end
+
+        subgraph SIT_REL["Release Pipeline"]
+            direction LR
+            SR_SRC["☁ Source"] --> SR_DEP["▶ Deploy"] --> SR_ACC["✎ Acceptance\nCucumber BDD"] --> SR_PRM["✓ Promote"]
+        end
+
+        S_PRM -- "artefact" --> SR_SRC
+    end
+
+    %% ── UAT Environment ─────────────────────────────────────
+    subgraph UAT["⬡ UAT Environment"]
+        direction TB
+
+        subgraph UAT_BUILD["Build Pipeline"]
+            direction LR
+            U_SRC["☁ Source\nSIT artefact"]
+            U_TST["⚙ Test"]
+            U_QAL["◈ Quality"]
+            U_REL["⬢ Release"]
+            U_PKG["☐ Package"]
+            U_AGG["☁ Aggregate"]
+            U_PRM["✓ Promote"]
+            U_SRC --> U_TST --> U_QAL --> U_REL --> U_PKG --> U_AGG --> U_PRM
+        end
+
+        subgraph UAT_REL["Release Pipeline"]
+            direction LR
+            UR_SRC["☁ Source"] --> UR_DEP["▶ Deploy"] --> UR_ACC["✎ Acceptance\nCucumber BDD\nPO sign-off"] --> UR_PRM["✓ Promote"]
+        end
+
+        U_PRM -- "artefact" --> UR_SRC
+    end
+
+    %% ── Staging Environment ─────────────────────────────────
+    subgraph STG["⬡ Staging / Pre-Production"]
+        direction TB
+
+        subgraph STG_BUILD["Build Pipeline"]
+            direction LR
+            ST_SRC["☁ Source\nUAT artefact"]
+            ST_TST["⚙ Test\nSmoke · Perf\nStress · Soak"]
+            ST_QAL["◈ Quality"]
+            ST_REL["⬢ Release"]
+            ST_PKG["☐ Package"]
+            ST_AGG["☁ Aggregate"]
+            ST_PRM["✓ Promote"]
+            ST_SRC --> ST_TST --> ST_QAL --> ST_REL --> ST_PKG --> ST_AGG --> ST_PRM
+        end
+
+        subgraph STG_REL["Release Pipeline"]
+            direction LR
+            STR_SRC["☁ Source"] --> STR_DEP["▶ Deploy"] --> STR_ACC["✎ Acceptance\n0 S1/S2 defects"] --> STR_PRM["✓ Promote"]
+        end
+
+        ST_PRM -- "artefact" --> STR_SRC
+    end
+
+    %% ── Production Environment ──────────────────────────────
+    subgraph PROD["⬡ Production"]
+        direction TB
+
+        subgraph PROD_BUILD["Build Pipeline"]
+            direction LR
+            P_SRC["☁ Source\nSTG artefact"]
+            P_TST["⚙ Test"]
+            P_QAL["◈ Quality"]
+            P_REL["⬢ Release"]
+            P_PKG["☐ Package"]
+            P_AGG["☁ Aggregate"]
+            P_PRM["✓ Promote"]
+            P_SRC --> P_TST --> P_QAL --> P_REL --> P_PKG --> P_AGG --> P_PRM
+        end
+
+        subgraph PROD_REL["Release Pipeline"]
+            direction LR
+            PR_SRC["☁ Source"] --> PR_DEP["▶ Deploy\nBlue/Green"] --> PR_ACC["✎ Smoke\nPost-deploy"] --> PR_PRM["✓ Live ✓"]
+        end
+
+        P_PRM -- "artefact" --> PR_SRC
+    end
+
+    %% ── Cross-environment promotion arrows ──────────────────
+    DR_PRM -- "Promoted Artefact\n(S3 zip)" --> S_SRC
+    SR_PRM -- "Promoted Artefact\n(S3 zip)" --> U_SRC
+    UR_PRM -- "Promoted Artefact\n(S3 zip)" --> ST_SRC
+    STR_PRM -- "Promoted Artefact\n(S3 zip)" --> P_SRC
+
+    %% ── Styles ──────────────────────────────────────────────
+    style DEV fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style SIT fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style UAT fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style STG fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style PROD fill:#ffebee,stroke:#c62828,stroke-width:2px
+
+    style DEV_BUILD fill:#bbdefb,stroke:#1565c0
+    style DEV_REL fill:#c8e6c9,stroke:#2e7d32
+    style SIT_BUILD fill:#bbdefb,stroke:#1565c0
+    style SIT_REL fill:#c8e6c9,stroke:#2e7d32
+    style UAT_BUILD fill:#bbdefb,stroke:#1565c0
+    style UAT_REL fill:#c8e6c9,stroke:#2e7d32
+    style STG_BUILD fill:#bbdefb,stroke:#1565c0
+    style STG_REL fill:#c8e6c9,stroke:#2e7d32
+    style PROD_BUILD fill:#bbdefb,stroke:#1565c0
+    style PROD_REL fill:#c8e6c9,stroke:#2e7d32
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Appendix: Revision History ────────────────────────── -->
+    <div class="appendix-section" id="appendix-history">
+      <h2>Appendix: Document Revision History</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Version</th><th>Date</th><th>Author</th><th>Changes</th></tr></thead>
+          <tbody>
+            <tr><td>1.0</td><td>2026-03-07</td><td>QA Team</td><td>Initial CI/CD integration documentation</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer>
+      AWS Integration Example — CI/CD Integration &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; 2026-03-07
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    flowchart: { curve: 'basis', useMaxWidth: true },
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  });
+
+  // Sidebar active-link highlight on scroll
+  const sections = document.querySelectorAll('section[id], div[id]');
+  const links = document.querySelectorAll('.sidebar nav a');
+
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const match = document.querySelector(`.sidebar nav a[href="#${entry.target.id}"]`);
+          if (match) match.classList.add('active');
+        }
+      });
+    },
+    { rootMargin: '-30% 0px -60% 0px' }
+  );
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
