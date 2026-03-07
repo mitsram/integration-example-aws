@@ -311,22 +311,23 @@
       <a href="#overview">1. Overview</a>
       <a href="#build-pipeline">2. Build Pipeline</a>
       <a href="#release-pipeline">3. Release Pipeline</a>
-      <a href="#promotion-flow">4. Environment Promotion</a>
-      <a href="#stages">5. Pipeline Stages</a>
-      <a href="#stages-source"   class="nav-sub">5.1 Source</a>
-      <a href="#stages-test"     class="nav-sub">5.2 Test</a>
-      <a href="#stages-quality"  class="nav-sub">5.3 Quality</a>
-      <a href="#stages-release"  class="nav-sub">5.4 Release</a>
-      <a href="#stages-package"  class="nav-sub">5.5 Package</a>
-      <a href="#stages-aggregate"class="nav-sub">5.6 Aggregate</a>
-      <a href="#stages-promote"  class="nav-sub">5.7 Promote</a>
-      <a href="#stages-deploy"   class="nav-sub">5.8 Deploy</a>
-      <a href="#stages-acceptance"class="nav-sub">5.9 Acceptance</a>
-      <a href="#stages-sit-e2e"  class="nav-sub">5.10 SIT E2E</a>
-      <a href="#env-strategy">6. Environment Strategy</a>
-      <a href="#artefacts">7. Artefact Management</a>
-      <a href="#quality-gates">8. Quality Gates</a>
-      <a href="#sit-e2e-strategy">9. SIT E2E Strategy</a>
+      <a href="#verification-pipeline">4. Verification Pipeline</a>
+      <a href="#promotion-flow">5. Environment Promotion</a>
+      <a href="#stages">6. Pipeline Stages</a>
+      <a href="#stages-source"   class="nav-sub">6.1 Source</a>
+      <a href="#stages-test"     class="nav-sub">6.2 Test</a>
+      <a href="#stages-quality"  class="nav-sub">6.3 Quality</a>
+      <a href="#stages-release"  class="nav-sub">6.4 Release</a>
+      <a href="#stages-package"  class="nav-sub">6.5 Package</a>
+      <a href="#stages-aggregate"class="nav-sub">6.6 Aggregate</a>
+      <a href="#stages-promote"  class="nav-sub">6.7 Promote</a>
+      <a href="#stages-deploy"   class="nav-sub">6.8 Deploy</a>
+      <a href="#stages-acceptance"class="nav-sub">6.9 Acceptance</a>
+      <a href="#stages-sit-e2e"  class="nav-sub">6.10 SIT E2E</a>
+      <a href="#env-strategy">7. Environment Strategy</a>
+      <a href="#artefacts">8. Artefact Management</a>
+      <a href="#quality-gates">9. Quality Gates</a>
+      <a href="#sit-e2e-strategy">10. SIT E2E Strategy</a>
       <a href="#appendix-e2e">Appendix: E2E View</a>
       <a href="#appendix-holistic">Appendix: Holistic View</a>
       <a href="#appendix-history">Revision History</a>
@@ -340,7 +341,7 @@
       <h1>CI/CD Integration — Pipelines &amp; Process</h1>
       <div class="meta-tags">
         <span class="meta-tag">Project: AWS Integration Example</span>
-        <span class="meta-tag">Version: 1.1</span>
+        <span class="meta-tag">Version: 1.3</span>
         <span class="meta-tag">Date: 2026-03-07</span>
         <span class="meta-tag">Platform: SOAP / Event-Driven</span>
       </div>
@@ -367,7 +368,7 @@
             <tr><td><strong>core-app-1</strong></td><td>core-app-1 Team (2 devs + 1 QA)</td><td>PlannedOutage client application (Express :4001)</td><td>Own Build + Release pipeline</td></tr>
             <tr><td><strong>siebel</strong></td><td>siebel Team (2 devs + 1 QA)</td><td>ServiceRequest, Event Listener (Express :3002)</td><td>Own Build + Release pipeline</td></tr>
             <tr><td><strong>integration-layer</strong></td><td>Integration Layer Team (3 devs + 1 QA)</td><td>API Gateway (Nginx :8080), soap-processor (:5000), event-publisher, pubsub-subscriber, ElasticMQ, Redis</td><td>Own Build + Release pipeline</td></tr>
-            <tr><td><strong>Platform QA</strong></td><td>QA Lead + QA Automation Engineer</td><td>Cross-system E2E test orchestration</td><td>Coordinates SIT E2E tests across all systems</td></tr>
+            <tr><td><strong>Platform QA</strong> (team)</td><td>QA Lead + QA Automation Engineer</td><td>Cross-system E2E test orchestration</td><td>Owns the <strong>Verification Pipeline</strong> &mdash; a separate CI pipeline auto-triggered when all three system acceptance tests pass</td></tr>
           </tbody>
         </table>
       </div>
@@ -375,32 +376,38 @@
       <div class="callout">
         <strong>Key Principle:</strong> Each system team independently builds, tests, and promotes its own artefacts.
         The three system pipelines run <strong>in parallel</strong>. At the <strong>SIT</strong> (System Integration Testing)
-        level, cross-system End-to-End tests — owned by Platform QA — validate that all systems work together before
+        level, the <strong>Verification Pipeline</strong> &mdash; owned by the Platform QA team and auto-triggered when
+        all three system acceptance tests pass &mdash; validates that all systems work together before
         promotion to UAT.
       </div>
 
       <div class="diagram-card">
-        <div class="diagram-label">Pipeline relationship (per system)</div>
+        <div class="diagram-label">Pipeline relationship (per system, plus shared Verification Pipeline)</div>
         <div class="mermaid">
 flowchart LR
     BP["Build Pipeline"]
     RP["Release Pipeline"]
+    VP["Verification Pipeline"]
     BP -- "Artefacts\n(Amazon S3 zip)" --> RP
     RP -- "Promoted Artefacts\n(next env)" --> RP
+    RP -- "SIT Acceptance\nResults" --> VP
+    VP -- "Promoted Artefacts\n(SIT → UAT)" --> BP2["Next Env\nBuild Source"]
 
     style BP fill:#4A90D9,color:#fff,stroke:#2a6ab5
     style RP fill:#2e7d32,color:#fff,stroke:#1b5e20
+    style VP fill:#FF9900,color:#fff,stroke:#cc7a00
+    style BP2 fill:#FF9900,color:#fff,stroke:#cc7a00
         </div>
       </div>
 
       <div class="callout">
-        Each system follows the same pipeline structure above, but <strong>each team owns and operates its
-        own instance</strong> of the Build and Release pipelines independently.
+        The Build and Release Pipelines exist <strong>per system</strong> (3 instances each). The Verification Pipeline
+        is a <strong>single shared pipeline</strong> owned by Platform QA that runs only in SIT.
       </div>
 
       <h3>Per-System Pipeline Architecture</h3>
       <div class="diagram-card">
-        <div class="diagram-label">Parallel per-system pipelines converging at SIT E2E</div>
+        <div class="diagram-label">Parallel per-system pipelines converging at Verification Pipeline</div>
         <div class="mermaid">
 flowchart TB
     subgraph CA1["core-app-1 Team Pipeline"]
@@ -425,7 +432,7 @@ flowchart TB
     SBL_AT --> E2E
     IL_AT --> E2E
 
-    E2E["🔗 SIT E2E Tests\n(Platform QA)\nCross-system validation"]
+    E2E["🔗 Verification Pipeline\n(owned by Platform QA team)\nAuto-triggered when all\nacceptance tests pass"]
     E2E --> PROMOTE["✓ Promote to UAT"]
 
     style CA1 fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
@@ -532,13 +539,100 @@ flowchart LR
       </div>
     </section>
 
-    <!-- ── 4. Environment Promotion Flow ────────────────────── -->
-    <section id="promotion-flow">
-      <h2>4. Environment Promotion Flow</h2>
+    <!-- ── 4. Verification Pipeline ──────────────────────────── -->
+    <section id="verification-pipeline">
+      <h2>4. Verification Pipeline</h2>
       <p>
-        Both pipelines are <strong>environment-agnostic</strong> — the same pipeline definition applies
+        The Verification Pipeline is a <strong>standalone CI pipeline</strong> — distinct from the per-system Build
+        and Release pipelines — owned and operated by the <strong>Platform QA team</strong>. It runs exclusively in the
+        <strong>SIT</strong> environment and is <strong>automatically triggered</strong> when all three system release
+        pipelines report successful acceptance tests. Its purpose is to validate the integrated behaviour of the
+        entire platform through <strong>cross-system E2E tests</strong>.
+      </p>
+
+      <div class="diagram-card">
+        <div class="diagram-label">Verification pipeline — stage flow (single shared pipeline)</div>
+        <div class="mermaid">
+flowchart LR
+    subgraph Verify["Verification Pipeline"]
+        direction LR
+        TR["Trigger\n(Event Listener)"]
+        GT["Gate\n(Readiness Check)"]
+        E2E["E2E Test\n(Playwright +\nCucumber 7)"]
+        RPT["Report\n(Test Reports)"]
+        PM["Promote\n(Artefacts → S3 zip × 3)"]
+    end
+    TR --> GT --> E2E --> RPT --> PM
+
+    style TR  fill:#FF9900,color:#fff,stroke:#cc7a00
+    style GT  fill:#FFAB00,color:#000,stroke:#cc8800
+    style E2E fill:#D50000,color:#fff,stroke:#b71c1c
+    style RPT fill:#6554C0,color:#fff,stroke:#4a3d8f
+    style PM  fill:#00875A,color:#fff,stroke:#005c3e
+        </div>
+      </div>
+
+      <h3>Stage Summary</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stage</th><th>Tool / Service</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Trigger</strong></td><td>GitHub Actions <code>workflow_run</code> / AWS EventBridge</td><td>Listen for all three system acceptance-test-passed events; start the pipeline only when all three succeed</td></tr>
+            <tr><td><strong>Gate</strong></td><td>Custom readiness-check script</td><td>Verify that all three systems are deployed, healthy, and at the expected artefact versions in SIT</td></tr>
+            <tr><td><strong>E2E Test</strong></td><td>Playwright + Cucumber 7</td><td>Run cross-system E2E scenarios: SOAP pipeline, event round-trips, error cascading, data consistency</td></tr>
+            <tr><td><strong>Report</strong></td><td>Allure / Cucumber Reports</td><td>Generate and publish test reports; attach results to the pipeline run for traceability</td></tr>
+            <tr><td><strong>Promote</strong></td><td>Amazon S3</td><td>On success, promote <strong>all three</strong> system artefacts simultaneously to UAT (S3 zip &times; 3)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Key Differences from Build &amp; Release Pipelines</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspect</th><th>Build Pipeline</th><th>Release Pipeline</th><th>Verification Pipeline</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Instances</strong></td><td>3 (one per system)</td><td>3 (one per system)</td><td><strong>1</strong> (single shared pipeline)</td></tr>
+            <tr><td><strong>Trigger</strong></td><td>Code commit / artefact promotion</td><td>Build artefact available</td><td><strong>All 3 system acceptance tests pass</strong></td></tr>
+            <tr><td><strong>Scope</strong></td><td>Single system</td><td>Single system</td><td><strong>Cross-system (all 3)</strong></td></tr>
+            <tr><td><strong>Environment</strong></td><td>All (DEV &rarr; PROD)</td><td>All (DEV &rarr; PROD)</td><td><strong>SIT only</strong></td></tr>
+            <tr><td><strong>Owner</strong></td><td>System team</td><td>System team</td><td><strong>Platform QA team</strong></td></tr>
+            <tr><td><strong>Test Type</strong></td><td>Unit, contract, integration</td><td>Acceptance (Cucumber BDD)</td><td><strong>Cross-system E2E</strong></td></tr>
+            <tr><td><strong>Promotes</strong></td><td>Own system artefact</td><td>Own system artefact</td><td><strong>All 3 system artefacts simultaneously</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Trigger Mechanism</h3>
+      <div class="diagram-card">
+        <div class="diagram-label">Event-based trigger — Verification Pipeline starts when all 3 systems pass</div>
+        <div class="mermaid">
+flowchart LR
+    CA1_RP["core-app-1\nRelease Pipeline\n&check; Acceptance Passed"] --> EB["Event Bus\n(EventBridge /\nGitHub Actions\nworkflow_run)"]
+    SBL_RP["siebel\nRelease Pipeline\n&check; Acceptance Passed"] --> EB
+    IL_RP["integration-layer\nRelease Pipeline\n&check; Acceptance Passed"] --> EB
+
+    EB --> DECISION{"All 3 systems\npassed?"}
+    DECISION -- Yes --> VP["Verification Pipeline\nTrigger → Gate → E2E Test\n→ Report → Promote"]
+    DECISION -- No --> WAIT["Wait for remaining\nsystem(s)"]
+
+    style CA1_RP fill:#bbdefb,stroke:#1565c0
+    style SBL_RP fill:#ffe0b2,stroke:#e65100
+    style IL_RP fill:#c8e6c9,stroke:#2e7d32
+    style EB fill:#f3e5f5,stroke:#6a1b9a
+    style DECISION fill:#fff3e0,stroke:#e65100
+    style VP fill:#FFAB00,color:#000,stroke:#cc8800,stroke-width:2px
+    style WAIT fill:#e0e0e0,stroke:#757575
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 5. Environment Promotion Flow ────────────────────── -->
+    <section id="promotion-flow">
+      <h2>5. Environment Promotion Flow</h2>
+      <p>
+        The Build and Release pipelines are <strong>environment-agnostic</strong> — the same pipeline definition applies
         to any environment. The source stage pulls artefacts from the previous environment's promoted output.
-        Each system team operates its own instance of both pipelines <strong>in parallel</strong>.
+        Each system team operates its own instance of both pipelines <strong>in parallel</strong>. The Verification Pipeline runs only in <strong>SIT</strong>.
       </p>
 
       <div class="diagram-card">
@@ -563,7 +657,7 @@ flowchart TB
             S_SBL["siebel\nBuild → Release\n→ Acceptance"]
             S_IL["integration-layer\nBuild → Release\n→ Acceptance"]
         end
-        SIT_E2E["🔗 E2E Cross-System Tests\n(Platform QA)"]
+        SIT_E2E["🔗 Verification Pipeline\n(dedicated, auto-triggered)\nOwned by Platform QA team"]
         S_CA1 --> SIT_E2E
         S_SBL --> SIT_E2E
         S_IL --> SIT_E2E
@@ -621,15 +715,15 @@ flowchart TB
       <h3>Environment Sequence</h3>
       <p>
         Each system team (core-app-1, siebel, integration-layer) runs its own Build + Release pipeline
-        <strong>in parallel</strong> within each environment. At <strong>SIT</strong>, a cross-system E2E
-        test phase orchestrated by Platform QA runs <strong>after</strong> all per-system acceptance tests pass.
+        <strong>in parallel</strong> within each environment. At <strong>SIT</strong>, the <strong>Verification Pipeline</strong>
+        &mdash; owned by the Platform QA team &mdash; is <strong>auto-triggered</strong> when all per-system acceptance tests pass.
       </p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Environment</th><th>Build Source</th><th>Release Source</th><th>Per-System Tests (each team)</th><th>Cross-System Tests</th><th>Gate</th></tr></thead>
           <tbody>
             <tr><td><strong>Development</strong></td><td>Git commit (S3 code bundle)</td><td>Build artefact</td><td>Unit, Contract, Integration, Component E2E</td><td>—</td><td>All per-system tests pass, SonarCloud quality gate</td></tr>
-            <tr><td><strong>SIT</strong></td><td>DEV promoted artefact</td><td>SIT build artefact</td><td>Integration, Contract Provider, Acceptance (Cucumber)</td><td><strong>E2E Cross-System Tests</strong> (Platform QA)</td><td>All per-system acceptance + E2E cross-system pass</td></tr>
+            <tr><td><strong>SIT</strong></td><td>DEV promoted artefact</td><td>SIT build artefact</td><td>Integration, Contract Provider, Acceptance (Cucumber)</td><td><strong>Verification Pipeline</strong> (auto-triggered, owned by Platform QA team)</td><td>All per-system acceptance + Verification Pipeline pass</td></tr>
             <tr><td><strong>UAT</strong></td><td>SIT promoted artefact</td><td>UAT build artefact</td><td>Cucumber BDD acceptance tests</td><td>—</td><td>PO sign-off per system</td></tr>
             <tr><td><strong>Staging</strong></td><td>UAT promoted artefact</td><td>STG build artefact</td><td>Smoke, Performance (stress + soak)</td><td>—</td><td>Performance criteria met, zero S1/S2 defects</td></tr>
             <tr><td><strong>Production</strong></td><td>STG promoted artefact</td><td>PROD build artefact</td><td>Smoke tests (post-deploy)</td><td>—</td><td>Change approval board</td></tr>
@@ -638,11 +732,11 @@ flowchart TB
       </div>
     </section>
 
-    <!-- ── 5. Pipeline Stages in Detail ─────────────────────── -->
+    <!-- ── 6. Pipeline Stages in Detail ─────────────────────── -->
     <section id="stages">
-      <h2>5. Pipeline Stages in Detail</h2>
+      <h2>6. Pipeline Stages in Detail</h2>
 
-      <h3 id="stages-source">5.1 Source (Amazon S3)</h3>
+      <h3 id="stages-source">6.1 Source (Amazon S3)</h3>
       <p>
         The source stage retrieves the input artefact bundle. For the initial build (Development), this
         is the committed code stored as an S3 object. For subsequent environments, the source is the
@@ -653,7 +747,7 @@ flowchart TB
         <li><strong>Output:</strong> Extracted source code or artefact bundle in the build workspace</li>
       </ul>
 
-      <h3 id="stages-test">5.2 Test (JUnit)</h3>
+      <h3 id="stages-test">6.2 Test (JUnit)</h3>
       <p>Runs the automated test suite using JUnit 5 and Vitest.</p>
       <div class="table-wrap">
         <table>
@@ -669,7 +763,7 @@ flowchart TB
         </table>
       </div>
 
-      <h3 id="stages-quality">5.3 Quality (SonarCloud)</h3>
+      <h3 id="stages-quality">6.3 Quality (SonarCloud)</h3>
       <p>Static analysis gate that blocks promotion if quality criteria are not met.</p>
       <div class="table-wrap">
         <table>
@@ -684,7 +778,7 @@ flowchart TB
         </table>
       </div>
 
-      <h3 id="stages-release">5.4 Release (Maven)</h3>
+      <h3 id="stages-release">6.4 Release (Maven)</h3>
       <p>Maven resolves dependencies, versions the build, and produces release-ready binaries.</p>
       <ul>
         <li>Java components: compiled JARs (playwright-java-framework, test utilities)</li>
@@ -692,7 +786,7 @@ flowchart TB
         <li>Version tagging follows semantic versioning</li>
       </ul>
 
-      <h3 id="stages-package">5.5 Package (JFrog Artifactory)</h3>
+      <h3 id="stages-package">6.5 Package (JFrog Artifactory)</h3>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Artefact Type</th><th>Description</th><th>Repository</th></tr></thead>
@@ -704,7 +798,7 @@ flowchart TB
         </table>
       </div>
 
-      <h3 id="stages-aggregate">5.6 Aggregate (AWS CodeBuild)</h3>
+      <h3 id="stages-aggregate">6.6 Aggregate (AWS CodeBuild)</h3>
       <p>AWS CodeBuild combines all individual artefacts into a single deployment bundle:</p>
       <ol>
         <li>Collect JARs from JFrog</li>
@@ -714,7 +808,7 @@ flowchart TB
         <li>Bundle into a versioned composite artefact</li>
       </ol>
 
-      <h3 id="stages-promote">5.7 Promote (Artefacts → Amazon S3 zip)</h3>
+      <h3 id="stages-promote">6.7 Promote (Artefacts → Amazon S3 zip)</h3>
       <p>The final artefact is stored in an S3 bucket with the following structure:</p>
 <pre>s3://project-artefacts/
   └── {environment}/
@@ -732,7 +826,7 @@ flowchart TB
           └── tests/
               └── playwright-framework.jar</pre>
 
-      <h3 id="stages-deploy">5.8 Deploy</h3>
+      <h3 id="stages-deploy">6.8 Deploy</h3>
       <p>Deployment to each environment uses environment-specific configuration:</p>
       <div class="table-wrap">
         <table>
@@ -747,7 +841,7 @@ flowchart TB
         </table>
       </div>
 
-      <h3 id="stages-acceptance">5.9 Acceptance (Per-System Cucumber Tests)</h3>
+      <h3 id="stages-acceptance">6.9 Acceptance (Per-System Cucumber Tests)</h3>
       <p>Each system team runs its <strong>own</strong> Cucumber BDD acceptance tests post-deploy, validating that system's business-critical flows in isolation:</p>
       <div class="table-wrap">
         <table>
@@ -761,14 +855,15 @@ flowchart TB
       </div>
       <div class="callout callout-amber">
         <strong>Important:</strong> Each team is responsible for maintaining and running their own acceptance tests.
-        A system's acceptance tests must all pass before the cross-system E2E phase can begin at SIT.
+        A system's acceptance tests must all pass before the Verification Pipeline can begin at SIT.
       </div>
 
-      <h3 id="stages-sit-e2e">5.10 SIT E2E Cross-System Tests</h3>
+      <h3 id="stages-sit-e2e">6.10 SIT E2E Cross-System Tests</h3>
       <p>
         At the <strong>SIT</strong> (System Integration Testing) environment, after all three systems pass their
-        individual acceptance tests, Platform QA orchestrates <strong>cross-system E2E tests</strong> that
-        validate the full integration chain:
+        individual acceptance tests, the <strong>Verification Pipeline</strong> &mdash; owned and maintained by
+        the Platform QA team &mdash; is <strong>automatically triggered</strong>. This separate CI pipeline runs
+        <strong>cross-system E2E tests</strong> that validate the full integration chain:
       </p>
       <ul>
         <li>SOAP request originates from core-app-1 → routed through API Gateway → processed by soap-processor → queued to SQS → consumed by event-publisher → published to Redis → received by siebel event-listener</li>
@@ -820,9 +915,9 @@ flowchart LR
       </div>
     </section>
 
-    <!-- ── 6. Environment Strategy ────────────────────────────── -->
+    <!-- ── 7. Environment Strategy ────────────────────────────── -->
     <section id="env-strategy">
-      <h2>6. Environment Strategy</h2>
+      <h2>7. Environment Strategy</h2>
 
       <div class="diagram-card">
         <div class="diagram-label">Environment progression</div>
@@ -858,9 +953,9 @@ flowchart LR
       </div>
     </section>
 
-    <!-- ── 7. Artefact Management ─────────────────────────────── -->
+    <!-- ── 8. Artefact Management ─────────────────────────────── -->
     <section id="artefacts">
-      <h2>7. Artefact Management</h2>
+      <h2>8. Artefact Management</h2>
 
       <h3>Artefact Lifecycle</h3>
       <div class="diagram-card">
@@ -900,9 +995,9 @@ flowchart LR
       </ul>
     </section>
 
-    <!-- ── 8. Quality Gates ───────────────────────────────────── -->
+    <!-- ── 9. Quality Gates ───────────────────────────────────── -->
     <section id="quality-gates">
-      <h2>8. Quality Gates</h2>
+      <h2>9. Quality Gates</h2>
       <p>Each pipeline stage has defined quality gates that must pass before proceeding.</p>
 
       <div class="diagram-card">
@@ -940,7 +1035,7 @@ flowchart LR
             <tr><td><strong>Package</strong></td><td>All artefacts published successfully; checksums validated</td><td>Aggregation</td></tr>
             <tr><td><strong>Deploy</strong></td><td>All health endpoints return 200; infrastructure connectivity confirmed</td><td>Acceptance testing</td></tr>
             <tr><td><strong>Acceptance</strong></td><td>All Cucumber BDD scenarios pass (per-system)</td><td>Environment promotion</td></tr>
-            <tr><td><strong>SIT E2E</strong></td><td>All cross-system E2E tests pass (Platform QA)</td><td>SIT → UAT promotion</td></tr>
+            <tr><td><strong>SIT E2E</strong></td><td>All cross-system E2E tests pass (Verification Pipeline, owned by Platform QA team)</td><td>SIT → UAT promotion</td></tr>
             <tr><td><strong>Promote</strong></td><td>Acceptance + E2E passed + manual sign-off (UAT/Staging/Production)</td><td>Next environment</td></tr>
           </tbody>
         </table>
@@ -956,17 +1051,44 @@ flowchart LR
       </ul>
     </section>
 
-    <!-- ── 9. SIT End-to-End Testing Strategy ────────────────── -->
+    <!-- ── 10. SIT End-to-End Testing Strategy ───────────────── -->
     <section id="sit-e2e-strategy">
-      <h2>9. SIT End-to-End Testing Strategy</h2>
+      <h2>10. SIT End-to-End Testing Strategy</h2>
 
       <h3>Purpose</h3>
       <p>
         SIT (System Integration Testing) is the <strong>first environment where all three systems run together</strong>.
-        While each system team validates its own components via acceptance tests, Platform QA orchestrates an
-        additional layer of <strong>cross-system E2E tests</strong> that verify the integrated behaviour of the
-        entire platform.
+        While each system team validates its own components via acceptance tests, the Platform QA team owns the
+        <strong>Verification Pipeline</strong> &mdash; a separate CI pipeline that is <strong>automatically
+        triggered</strong> when all three system acceptance tests report green. This pipeline runs
+        <strong>cross-system E2E tests</strong> that verify the integrated behaviour of the entire platform.
       </p>
+
+      <h3>What is the Verification Pipeline?</h3>
+      <p>
+        The <strong>Verification Pipeline</strong> is the <strong>third pipeline type</strong> (alongside Build and Release) &mdash; a standalone CI pipeline (e.g., a GitHub Actions
+        workflow or AWS CodePipeline) distinct from the three system pipelines:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspect</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Type</strong></td><td>A standalone CI pipeline (not a stage within system pipelines)</td></tr>
+            <tr><td><strong>Trigger</strong></td><td><strong>Automatic</strong> &mdash; fires when all three system release pipelines report acceptance-test success in SIT</td></tr>
+            <tr><td><strong>Owner</strong></td><td>Platform QA team (QA Lead defines strategy; QA Automation Engineer maintains the pipeline and test suites)</td></tr>
+            <tr><td><strong>Infrastructure</strong></td><td>Runs against the <strong>shared SIT environment</strong> where all three systems are already deployed; does not provision its own infrastructure</td></tr>
+            <tr><td><strong>Test Suites</strong></td><td>Cross-system E2E scenarios (SOAP pipeline, event round-trips, error cascading, data consistency) using Playwright + Cucumber 7</td></tr>
+            <tr><td><strong>Output</strong></td><td>Pass/fail gate &mdash; on success, promotes all three system artefacts to UAT simultaneously</td></tr>
+            <tr><td><strong>Failure Action</strong></td><td>Blocks promotion for <strong>all</strong> systems; notifies all three teams + Platform QA for triage</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <strong>Clarification &mdash; &ldquo;Platform QA&rdquo; is a team, not infrastructure.</strong> The QA Lead
+        and QA Automation Engineer on the Platform QA team are responsible for defining, implementing, and
+        maintaining this dedicated pipeline. The pipeline itself runs in the same CI tooling (e.g., GitHub Actions)
+        used by the system teams.
+      </div>
 
       <h3>Execution Flow</h3>
       <div class="diagram-card">
@@ -1030,16 +1152,16 @@ flowchart TB
             <tr><td><strong>core-app-1 QA</strong></td><td>Writes and maintains core-app-1 acceptance tests; reviews E2E scenarios touching core-app-1</td></tr>
             <tr><td><strong>siebel QA</strong></td><td>Writes and maintains siebel acceptance tests; reviews E2E scenarios touching siebel</td></tr>
             <tr><td><strong>Integration Layer QA</strong></td><td>Writes and maintains integration-layer acceptance tests; reviews E2E scenarios touching the integration layer</td></tr>
-            <tr><td><strong>Platform QA (QA Lead)</strong></td><td>Defines E2E test strategy, reviews all E2E scenarios, coordinates SIT gate sign-off</td></tr>
-            <tr><td><strong>Platform QA (QA Automation)</strong></td><td>Implements and maintains cross-system E2E test suites; manages shared test infrastructure</td></tr>
+            <tr><td><strong>Platform QA (QA Lead)</strong></td><td>Defines E2E test strategy, reviews all E2E scenarios, coordinates SIT gate sign-off, owns the Verification Pipeline definition</td></tr>
+            <tr><td><strong>Platform QA (QA Automation)</strong></td><td>Implements and maintains cross-system E2E test suites in the Verification Pipeline; manages shared test infrastructure and pipeline triggers</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="callout callout-amber">
         <strong>SIT Promotion Rule:</strong> A system's artefact cannot be promoted from SIT to UAT independently.
-        All three systems must pass their individual acceptance tests <strong>and</strong> the cross-system E2E
-        suite must pass before <strong>any</strong> artefact is promoted. This ensures integration integrity at all times.
+        All three systems must pass their individual acceptance tests <strong>and</strong> the Verification
+        Pipeline must pass before <strong>any</strong> artefact is promoted. This ensures integration integrity at all times.
       </div>
     </section>
 
@@ -1084,7 +1206,7 @@ flowchart TB
     <!-- ── Appendix: Unified Holistic View ───────────────────── -->
     <div class="appendix-section" id="appendix-holistic">
       <h2>Appendix: Unified Holistic View</h2>
-      <p>The following diagram shows the complete CI/CD process in a single view — per-system parallel pipelines, the SIT E2E gate, quality gates, artefact flow, and environment promotion chain.</p>
+      <p>The following diagram shows the complete CI/CD process in a single view — per-system parallel pipelines, the Verification Pipeline gate, quality gates, artefact flow, and environment promotion chain.</p>
       <div class="diagram-card">
         <div class="diagram-label">Full holistic CI/CD view — per-system parallel pipelines across all environments</div>
         <div class="mermaid">
@@ -1129,7 +1251,7 @@ flowchart TB
             S_IL["integration-layer\nBuild → Release\n→ Acceptance ✓"]
         end
 
-        SIT_GATE["🔗 SIT E2E Cross-System Tests\n(Platform QA)\nSOAP pipeline · Event pipeline\nRound-trip · Error cascading"]
+        SIT_GATE["🔗 Verification Pipeline\n(dedicated, auto-triggered)\nOwned by Platform QA team\nSOAP pipeline · Event pipeline\nRound-trip · Error cascading"]
 
         S_CA1 --> SIT_GATE
         S_SBL --> SIT_GATE
@@ -1206,13 +1328,15 @@ flowchart TB
           <tbody>
             <tr><td>1.0</td><td>2026-03-07</td><td>QA Team</td><td>Initial CI/CD integration documentation</td></tr>
             <tr><td>1.1</td><td>2026-03-07</td><td>QA Team</td><td>Added per-system pipeline architecture, SIT E2E testing strategy, updated holistic view</td></tr>
+            <tr><td>1.2</td><td>2026-03-07</td><td>QA Team</td><td>Clarified Platform QA as a team owning the Verification Pipeline (separate CI pipeline, auto-triggered)</td></tr>
+            <tr><td>1.3</td><td>2026-03-07</td><td>QA Team</td><td>Added Verification Pipeline as formal Section 4; renumbered all subsequent sections; updated all cross-references</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <footer>
-      AWS Integration Example — CI/CD Integration &nbsp;|&nbsp; Version 1.1 &nbsp;|&nbsp; 2026-03-07
+      AWS Integration Example — CI/CD Integration &nbsp;|&nbsp; Version 1.3 &nbsp;|&nbsp; 2026-03-07
     </footer>
 
   </main>
