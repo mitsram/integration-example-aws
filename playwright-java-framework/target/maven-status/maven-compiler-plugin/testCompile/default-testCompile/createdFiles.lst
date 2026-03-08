@@ -1,5 +1,6 @@
 com/integration/tests/integration/CoreApp1Test.class
 com/integration/tests/integration/ApiGatewayTest.class
+com/integration/framework/xray/XrayCucumberPlugin$1.class
 com/integration/tests/contract/consumer/CoreApp1SoapConsumerPactTest.class
 com/integration/tests/integration/SiebelTest.class
 com/integration/tests/contract/provider/IntegrationEventProviderPactTest.class

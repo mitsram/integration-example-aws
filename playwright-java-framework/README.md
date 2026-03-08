@@ -18,9 +18,14 @@ src/
 │   ├── api/             # HTTP & SOAP clients (Playwright APIRequestContext)
 │   │   ├── ApiClient.java
 │   │   └── SoapClient.java
-│   └── utils/           # Redis event collector, wait helpers
-│       ├── EventCollector.java
-│       └── WaitUtils.java
+│   ├── utils/           # Redis event collector, wait helpers
+│   │   ├── EventCollector.java
+│   │   └── WaitUtils.java
+│   └── xray/            # Xray Cloud integration (config, client, annotation)
+│       ├── XrayConfig.java
+│       ├── XrayClient.java
+│       ├── XrayTestKey.java
+│       └── XrayException.java
 ├── main/resources/
 │   ├── config-local.properties
 │   ├── config-docker.properties
@@ -42,10 +47,13 @@ src/
     │   └── provider/
     │       ├── SoapApiProviderPactTest.java
     │       └── IntegrationEventProviderPactTest.java
-    └── cucumber/        # BDD scaffolding
-        ├── RunCucumberTest.java
-        ├── steps/IntegrationSteps.java
-        └── features/ (in test resources)
+    ├── cucumber/        # BDD scaffolding
+    │   ├── RunCucumberTest.java
+    │   ├── steps/IntegrationSteps.java
+    │   └── features/ (in test resources)
+    └── framework/xray/   # Xray test extensions
+        ├── XrayReportingExtension.java   # JUnit 5 extension
+        └── XrayCucumberPlugin.java       # Cucumber event plugin
 ```
 
 ## Prerequisites
@@ -132,6 +140,13 @@ Every property can be overridden by:
 | `pubsub.topic` | `integration-events` | Redis Pub/Sub topic |
 | `browser.headless` | `true` | Run browser headless |
 | `browser.type` | `chromium` | Browser: chromium/firefox/webkit |
+| `xray.enabled` | `false` | Enable Xray result reporting |
+| `xray.base.url` | `https://xray.cloud.getxray.app` | Xray Cloud API base URL |
+| `xray.client.id` | | Xray API client ID |
+| `xray.client.secret` | | Xray API client secret |
+| `xray.project.key` | | Jira project key (e.g. `PROJ`) |
+| `xray.test.plan.key` | | Optional: link executions to a Test Plan |
+| `xray.test.execution.key` | | Optional: update an existing Test Execution |
 
 ## Contract Testing
 
@@ -203,6 +218,118 @@ Uses **Pact JVM** for consumer-driven contract testing.
        void teardown() { factory.close(); }
    }
    ```
+
+## Xray Integration
+
+The framework integrates with **Jira Xray Cloud** to report test execution results and update Xray Test issue statuses (PASS / FAIL / TODO).
+
+### Setup
+
+1. **Generate API credentials** in Xray Cloud → Settings → API Keys
+2. **Configure credentials** (pick one method):
+
+   Via properties file (`config-staging.properties`):
+   ```properties
+   xray.enabled=true
+   xray.client.id=YOUR_CLIENT_ID
+   xray.client.secret=YOUR_CLIENT_SECRET
+   xray.project.key=PROJ
+   xray.test.plan.key=PROJ-100        # optional
+   xray.test.execution.key=PROJ-200   # optional, auto-creates if blank
+   ```
+
+   Via environment variables:
+   ```bash
+   export XRAY_ENABLED=true
+   export XRAY_CLIENT_ID=YOUR_CLIENT_ID
+   export XRAY_CLIENT_SECRET=YOUR_CLIENT_SECRET
+   export XRAY_PROJECT_KEY=PROJ
+   ```
+
+   Via system properties:
+   ```bash
+   mvn test -Pintegration -Dxray.enabled=true -Dxray.client.id=... -Dxray.client.secret=...
+   ```
+
+### JUnit 5 Tests
+
+Annotate test methods with `@XrayTestKey` and register the extension:
+
+```java
+import com.integration.framework.xray.XrayTestKey;
+import com.integration.framework.xray.XrayReportingExtension;
+
+@ExtendWith(XrayReportingExtension.class)
+class ApiGatewayTest extends BaseTest {
+
+    @XrayTestKey("PROJ-101")
+    @Test
+    void validSoapReturns202() {
+        // test logic — result auto-reported to Xray
+    }
+
+    @XrayTestKey({"PROJ-201", "PROJ-202"})  // link to multiple Xray tests
+    @Test
+    void crossAppRoundTrip() { ... }
+}
+```
+
+The extension:
+- Authenticates with Xray Cloud on `@BeforeAll`
+- Captures PASS/FAIL for each `@XrayTestKey`-annotated method
+- Bulk-imports all results to Xray on `@AfterAll` (single API call per test class)
+- Silently skips reporting if Xray is not configured (no test failures)
+
+### Cucumber BDD Tests
+
+Tag scenarios with Jira issue keys:
+
+```gherkin
+@integration @PROJ-301
+Scenario: Valid SOAP request returns 202 Accepted
+  Given the integration layer is running
+  When I send a valid SOAP request to the API Gateway
+  Then the response status should be 202
+```
+
+Register the plugin in your Cucumber runner:
+
+```java
+@ConfigurationParameter(
+    key = PLUGIN_PROPERTY_NAME,
+    value = "html:target/cucumber-reports/report.html," +
+            "com.integration.framework.xray.XrayCucumberPlugin")
+class RunCucumberTest { ... }
+```
+
+The plugin auto-detects tags matching the `@PROJ-123` pattern and reports results at the end of the Cucumber run.
+
+### How It Works
+
+1. **Authentication** — uses client credentials to obtain a bearer token from Xray Cloud API v2
+2. **Result collection** — test outcomes are collected during execution (no API calls mid-test)
+3. **Bulk import** — a single `POST /api/v2/import/execution` call creates/updates a Test Execution issue in Jira with all results
+4. **Status mapping**:
+   | Test Outcome | Xray Status |
+   |---|---|
+   | Passed | PASS |
+   | Failed | FAIL |
+   | Skipped / Pending | TODO |
+
+### Programmatic Usage
+
+For custom reporting workflows, use `XrayClient` directly:
+
+```java
+XrayConfig xrayConfig = XrayConfig.from(TestConfig.load());
+XrayClient client = new XrayClient(xrayConfig);
+
+String executionKey = client.importExecutionResults(List.of(
+    new XrayClient.TestResult("PROJ-101", "PASS", "Completed in 1.2s"),
+    new XrayClient.TestResult("PROJ-102", "FAIL", "Expected 200 but got 500")
+));
+// executionKey = "PROJ-456" (the created Test Execution issue)
+```
 
 ## Test Mapping: TypeScript → Java
 

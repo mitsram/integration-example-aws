@@ -6,3 +6,7 @@
 /Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/pages/BasePage.java
 /Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/utils/EventCollector.java
 /Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/utils/WaitUtils.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/xray/XrayClient.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/xray/XrayConfig.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/xray/XrayException.java
+/Users/mitsram/Workspace/Github/mitsram/integration-example-aws/playwright-java-framework/src/main/java/com/integration/framework/xray/XrayTestKey.java
